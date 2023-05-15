@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+  height: 1000px;
+}
+
+.header {
+  background-color: lightcoral;
+}
+
+.home {
+  font-size: 30px;
+  text-align: center;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  text-align: center;
+  background-color: red;
+  height: 150px;
+  width: 100%;
+}
+.footer h1 {
+  background-color: blue;
+}
+
+/*# sourceMappingURL=index.css.map */
