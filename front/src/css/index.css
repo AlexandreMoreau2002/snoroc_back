@@ -2,10 +2,32 @@ body {
   margin: 0;
   padding: 0;
   height: 1000px;
+  background-color: #1E1E1E;
+  color: #F1F1F6;
+}
+
+Nav {
+  text-align: center;
+  font-size: 42px;
+}
+Nav a {
+  color: #F1F1F6;
+  text-decoration: none;
 }
 
 .header {
-  background-color: lightcoral;
+  background-image: url(../asset/headerbg.jpg);
+  background-position: 50% 24%;
+  background-size: cover;
+  box-shadow: inset 0px 50px 117px 140px #1E1E1E;
+  height: 366px;
+}
+.header img {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%);
+  height: 118px;
+  width: 117px;
 }
 
 .home {
@@ -14,15 +36,13 @@ body {
 }
 
 .footer {
-  position: fixed;
   bottom: 0;
   text-align: center;
-  background-color: red;
   height: 150px;
   width: 100%;
 }
-.footer h1 {
-  background-color: blue;
+.footer p {
+  background-color: snow;
 }
 
 /*# sourceMappingURL=index.css.map */

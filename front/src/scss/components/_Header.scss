@@ -1,3 +1,17 @@
+
+
 .header {
-    background-color: lightcoral;
+    background-image: url(../asset/headerbg.jpg);
+    background-position: 50% 24%;
+    background-size: cover;
+    box-shadow: inset 0px 50px 117px 140px #1E1E1E;
+    height: 366px;
+
+    img {
+        position: relative;
+        left: 50%;
+        transform: translate(-50%);
+        height: 118px;
+        width: 117px;
+    }
 }

@@ -1,9 +1,17 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
+import Nav from './Nav'
+import Logo from '../asset/Logo.webp';
+
 
 export default function Header() {
   return (
-    <div className='header'>
-        <h1>header</h1>
-    </div>
+    <header className='header'>
+        <Nav/>
+        <Link to="/">
+          <img src={Logo} alt="Logo"  />
+        </Link>
+
+    </header>
   )
 }
