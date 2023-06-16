@@ -1,12 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import Actus from '../../../asset/Actus.jpg'
 
 export default function Home() {
   return (
     <section className='home'>
 
       <div className="mainActu">
-        <img src="" alt="img" />
+        <img src={Actus} alt="img" />
         <h2>Titre </h2>
         <p> Desc </p>
         <time dateTime='2023-01-01'> 01/01/2023 </time>
@@ -14,7 +15,7 @@ export default function Home() {
 
       <div className='carousel'>
         <div className="actu2">
-          <img src="/Users/alexandremoreau/Desktop/snoroc/front/src/asset/actus.jpg" alt="actus2img" />
+          <img src={Actus} alt="actus2img" />
         </div>
         <div className="actu3"></div>
         <div className="actu4"></div>
@@ -26,10 +27,12 @@ export default function Home() {
           <button className="2">2</button>
           <button className="3">3</button>
 
-          <button> &gt; </button>
+          <button> &gt; {/*importer une icone*/} </button> 
         </nav>
 
-        <Link to="/Home/Gallery">Tout voir</Link>
+        <button>
+          <Link to="/Home/Gallery">Tout voir</Link>
+        </button>
       </div>
 
     </section>

@@ -1,5 +1,4 @@
 import Header from './Header'
 import Footer from './Footer'
-import Nav from './Nav'
 
-export {Header, Nav, Footer}
+export {Header, Footer}

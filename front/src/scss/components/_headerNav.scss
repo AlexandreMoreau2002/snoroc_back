@@ -1,0 +1,100 @@
+// code universel de la navBar du header
+
+.headerNav {
+    text-align: center;
+    display: flex;
+    max-width: 1500px;
+    
+    a {
+        font-family: $asap;
+        color: $white;
+        text-decoration: none;        
+    }
+
+    .active::after {
+        content: '';
+        display: block;
+        height: 2px;
+        width: 100%;
+        margin: 0 auto;
+        background-color: $blue;
+        animation: slideInFromLeft 0.3s ease-in-out forwards;
+            
+    }
+}
+
+
+
+// mobile 
+@media screen and (max-width: 480px){
+    .headerNav {
+
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: $header-mobile-link;
+        
+        .active {
+            font-size: $header-mobile-link-onpage;
+        
+        }
+
+        a {
+            padding: 15px 20px 15px 20px;
+    
+        }
+    }
+}
+
+// tablette
+@media screen and (min-width: 481px) and (max-width: 768px){
+    .headerNav {
+
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 60px;
+        height: 121px;
+        padding: 35px 70px;
+        font-size: $header-desktop-link;
+
+        a {
+            padding: 0 20px;
+
+        }
+        :nth-child(3) {
+            margin-right: auto;
+        }
+    }
+}
+
+// ordinateur
+@media screen and (min-width: 769px){
+    .headerNav {
+
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 60px;
+        height: 121px;
+        padding: 35px 70px;
+        font-size: $header-desktop-link;
+
+        a {
+            padding: 0 20px;
+
+        }
+        :nth-child(3) {
+            margin-right: auto;
+        }
+    }
+}
+
+@keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0%);
+      opacity: 1;
+    }
+  }
