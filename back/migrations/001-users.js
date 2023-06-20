@@ -1,5 +1,8 @@
 'use strict';
 
+const { Sequelize } = require('sequelize');
+const { toDefaultValue } = require('sequelize/types/utils');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -8,12 +11,6 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        allowNull: false
-      },
-
-      username: {
-        type: Sequelize.STRING,
-        unique: true,
         allowNull: false
       },
 
@@ -32,12 +29,85 @@ module.exports = {
       },
 
       updatedAt: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        allowNull: false
       },
-
+      
+      email: {
+        type: Sequelize.STRING, 
+        allowNull: false,
+        unique: true
+      },
+      
+      firstname: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      
+      lastname: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      
+      phone: {
+        type: Sequelize.STRING, 
+        allowNull: true
+      },
+      
+      civility: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      
+      newsletter: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      
+      isAdmin: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      
+      isVerified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+      },
+      
+      emailVerificationToken: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      
+      emailVerificationTokenExpires: {
+        type: Sequelize.DATE,
+        allowNull: true
+      },
+      
+      isRestricted: {
+        type: Sequelize.BOOLEAN,
+        allowNull:false
+      },
+      
+      passwordResetTokenExpires: {
+        type: Sequelize.DATE,
+        allowNull: true
+      }
+      
     });
   },
 
   async down(queryInterface, Sequelize) {
   }
 };
+
+
+
