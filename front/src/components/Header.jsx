@@ -12,7 +12,7 @@ export default function Header() {
         <NavLink to="/Media" activeClassName="active"> Média </NavLink>
         <NavLink to="/About" activeClassName="active"> A propos </NavLink>
         <NavLink to="/Contact" activeClassName="active"> Contact </NavLink>
-        <NavLink to="/Profil" activeClassName="active"> Profile </NavLink>
+        <NavLink to="/Profil" activeClassName="active"> Profil </NavLink>
       </nav>
       <Link to="/">
         <img src={Logo} alt="Logo" className='logo' />

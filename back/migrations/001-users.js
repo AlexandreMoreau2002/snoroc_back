@@ -1,8 +1,5 @@
 'use strict';
 
-const { Sequelize } = require('sequelize');
-const { toDefaultValue } = require('sequelize/types/utils');
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -23,15 +20,8 @@ module.exports = {
         type: Sequelize.TEXT('long'),
         allowNull: true
       },
-
-      createdAt: {
-        type: Sequelize.DATE
-      },
-
-      updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false
-      },
+      
+      // add 
       
       email: {
         type: Sequelize.STRING, 
@@ -100,11 +90,20 @@ module.exports = {
       passwordResetTokenExpires: {
         type: Sequelize.DATE,
         allowNull: true
-      }
+      },
       
+      createdAt: {
+        type: Sequelize.DATE
+      },
+      
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false
+      }
+
     });
   },
-
+  
   async down(queryInterface, Sequelize) {
   }
 };

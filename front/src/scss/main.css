@@ -1,0 +1,149 @@
+@import url("https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@300;400;700&family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;700&display=swap");
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  height: 1000px;
+  background-color: #1E1E1E;
+  color: #F1F1F6;
+}
+
+.headerNav {
+  text-align: center;
+  display: flex;
+  max-width: 1500px;
+}
+.headerNav a {
+  font-family: "Asap Condensed", sans-serif;
+  color: #F1F1F6;
+  text-decoration: none;
+}
+.headerNav .active::after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 100%;
+  margin: 0 auto;
+  background-color: #1B74E4;
+  animation: slideInFromLeft 0.3s ease-in-out forwards;
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+@media screen and (max-width: 480px) {
+  .headerNav {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 18px;
+  }
+  .headerNav .active {
+    font-size: 24px;
+  }
+  .headerNav a {
+    padding: 15px 20px 15px 20px;
+  }
+}
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .headerNav {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 60px;
+    height: 121px;
+    padding: 35px 70px;
+    font-size: 32px;
+  }
+  .headerNav a {
+    padding: 0 20px;
+  }
+  .headerNav :nth-child(3) {
+    margin-right: auto;
+  }
+}
+@media screen and (min-width: 769px) {
+  .headerNav {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 60px;
+    height: 121px;
+    padding: 35px 70px;
+    font-size: 32px;
+  }
+  .headerNav a {
+    padding: 0 20px;
+  }
+  .headerNav :nth-child(3) {
+    margin-right: auto;
+  }
+}
+.header {
+  background-image: url(../asset/headerbg.jpg);
+  height: 366px;
+}
+.header .logo {
+  position: absolute;
+  top: 21px;
+  right: 26px;
+  width: 50px;
+  height: 50px;
+}
+
+@media screen and (min-width: 380px) and (max-width: 480px) {
+  .header {
+    background-position: 49% -150px;
+    background-repeat: no-repeat;
+    background-size: 375%;
+    box-shadow: inset 0px 0px 95px 120px #1E1E1E;
+  }
+}
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .header {
+    background-position: 50% 24%;
+    background-size: cover;
+    box-shadow: inset 0px 50px 117px 140px #1E1E1E;
+  }
+  .logo {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    height: 75px;
+    width: 75px;
+  }
+}
+@media screen and (min-width: 769px) {
+  .header {
+    background-position: 50% 24%;
+    background-size: cover;
+    box-shadow: inset 0px 50px 117px 140px #1E1E1E;
+  }
+  .header .logo {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    height: 118px;
+    width: 117px;
+  }
+}
+.home {
+  font-size: 30px;
+  text-align: center;
+}
+.home img {
+  width: 324px;
+  height: 147px;
+}
+
+.footer {
+  bottom: 0;
+  text-align: center;
+  height: 150px;
+  width: 100%;
+}/*# sourceMappingURL=main.css.map */

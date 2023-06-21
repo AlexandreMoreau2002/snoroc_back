@@ -2,8 +2,8 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('album', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('albums', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -30,8 +30,8 @@ module.exports = {
       },
 
       authorId: {
-        type: Sequilize.STRING,
-        reference: {
+        type: Sequelize.INTEGER,
+        references: {
           model: 'users',
           key: 'id'
         },
