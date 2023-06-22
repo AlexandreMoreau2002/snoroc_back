@@ -1,13 +1,11 @@
 const { Op } = require("sequelize");
-const { encryptPassword } = require("../utils/passwordHandler.utils");
-const { encryptPassword, comparePassword } = require("../utils/passwordHandler.utils");
-const { generateJwt } = require("../utils/jwtHandler.utils");
+const { encryptPassword, comparePassword } = require("../utils/encryptPassword.utils");
+const { generateJwt } = require("../utils/generateJwt.utils");
 
 exports.SignUp = async (req, res) => {
-    // Le try/catch va nous permettre de gérer les erreurs sans faire planter l’API et la retourner
+    // Le try/catch permet de gérer les erreurs sans faire planter l’API et la retourner
     // dans le catch
     try {
-        // Code à effectuer dans la fonction
 
         const { username, email, password } = req.body;
         // On récupère les clés requise depuis le corps de la requête
@@ -30,7 +28,7 @@ exports.SignUp = async (req, res) => {
         }
 
         const isUserExist = await User.findOne({ where: { [Op.or]: [{ username: username }, { email: email }] } })
-        // Grâce à notre modèle User, nous pouvons exécuter facilement des requêtes sur notre BDD, cette requête correspond à une recherche
+        // Grâce au modèle User, nous pouvons exécuter facilement des requêtes sur notre BDD, cette requête correspond à une recherche
         // dans la base de donnée, le[Op.or] nous permet de vérifier si un des deux arguments correspond à un utilisateur dans notre base de
         // données.
         if (isUserExist) {

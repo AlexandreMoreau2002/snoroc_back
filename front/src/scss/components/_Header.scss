@@ -3,7 +3,7 @@
     background-image: url(../asset/headerbg.jpg);
     height: 366px;
 
-    .logo {
+    .header__nav__link__logo {
         position: absolute;
         top: 21px;
         right: 26px;
@@ -30,14 +30,14 @@
         background-position: 50% 24%;
         background-size: cover;
         box-shadow: inset 0px 50px 117px 140px #1E1E1E;
-    }
-    
-    .logo {
-        position: absolute;
-        left: 50%;
-        transform: translate(-50%);
-        height: 75px;
-        width: 75px;
+        
+        .header__nav__link__logo {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%);
+            height: 75px;
+            width: 75px;
+        }
     }
 }
 
@@ -48,13 +48,12 @@
         background-size: cover;
         box-shadow: inset 0px 50px 117px 140px #1E1E1E;
         
-        .logo {
+        .header__nav__link__logo {
             position: absolute;
             left: 50%;
             transform: translate(-50%);
             height: 118px;
             width: 117px;
         }
-
     }
 }
