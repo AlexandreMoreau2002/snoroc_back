@@ -1,3 +1,23 @@
+// id
+// email
+// password
+// firstname
+// lastname
+// phone
+// civility
+// accessToken (JWT)
+// newsletter (boolean)
+// isAdmin (boolean)
+// isActive (boolean)
+// isVerified (boolean)
+// emailVerificationToken (code à 6 chiffres)
+// emailVerificationTokenExpires (date d'expiration du token (15 minutes))
+// isRestricted (boolean)
+// passwordResetToken (code à 6 chiffres)
+// passwordResetTokenExpires (date d'expiration du token (15 minutes))
+// createdAt
+// updatedAt
+
 const { Model, DataTypes } = require("sequelize");
 
 const sequelize = require("../../config/database.config");

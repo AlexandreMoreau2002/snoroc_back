@@ -1,0 +1,9 @@
+// id
+// name
+// email
+// phone
+// subject
+// message
+// hasBeenRead
+// createdAt
+// updatedAt

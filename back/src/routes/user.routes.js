@@ -7,3 +7,19 @@ router.post('/signup', userController.SignUp);
 router.post('/signin', userController.SignIn);
 // Cette route va permettre à l’utilisateur de se connecter à son compte
 module.exports = router;
+
+
+/*
+Signup
+Update
+Delete
+Get / GetById
+GetProfile
+ForgotPassword
+ResetPassword
+VerifyEmail
+Login
+UpdateRole
+UpdateNewsletter
+UpdatePassword
+*/
