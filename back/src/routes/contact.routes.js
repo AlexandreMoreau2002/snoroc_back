@@ -1,37 +1,20 @@
-// POST /contact
-// PUT /contact/:id
-// GET /contact
-// GET /contact/:id
-// DELETE /contact/:id
-
-
 const express = require('express');
 const router = express.Router();
-const contactController = require("../controllers/contact.controller")
+const {Create, Update, GetAll, GetById, DeleteById } = require('../controllers/contact.controller');
 
-// POST /contact 
-router.post('/', (req, res) => {
-  // Logique pour créer un nouveau contact
-});
+// Création d'un contact
+router.post('/', Create);
 
-// PUT /contact/:id
-router.put('/:id', (req, res) => {
-  // Logique pour mettre à jour un contact existant
-});
+// Mise à jour d'un contact par son ID
+router.patch('/:id', Update);
 
-// GET /contact
-router.get('/', (req, res) => {
-  // Logique pour récupérer tous les contacts
-});
+// Récupération de tous les contacts
+router.get('/', GetAll);
 
-// GET /contact/:id
-router.get('/:id', (req, res) => {
-  // Logique pour récupérer un contact spécifique par son ID
-});
+// Récupération d'un contact par son ID
+router.get('/:id', GetById);
 
-// DELETE /contact/:id
-router.delete('/:id', (req, res) => {
-  // Logique pour supprimer un contact par son ID
-});
+// Suppression d'un contact par son ID
+router.delete('/:id', DeleteById);
 
 module.exports = router;
