@@ -1,8 +1,9 @@
- # Snoroc
+# Snoroc
 
 ## Front
 
 ## Pages :
+
 - Accueil
   - Actualités
     - Listing de toutes les actus
@@ -12,12 +13,12 @@
     - Listing de tous les évènements passés
     - Page de l'évènement
   - Médias
-    - Listing de tous les médias 
+    - Listing de tous les médias
     - MediaPlayer du média
   - à propos
     - Contenu de la page à propos (information a propos du groupe)
 - Contact
-  - Informations de contact 
+  - Informations de contact
   - Formulaire de contact
     - (Nom, Prénom, Email, téléphone, sujet, Message)
 - Inscription
@@ -25,7 +26,7 @@
     - (Nom, Prénom, Email, téléphone (facultatif), Civilité, Mot de passe et confirmation, inscription à la newsletter, captcha)
 - Connexion
   - Formulaire de connexion
-    - (Email, Mot de passe, captcha (si 3 tentatives de connexion infructueuses))       
+    - (Email, Mot de passe, captcha (si 3 tentatives de connexion infructueuses))
 - Profil (si connecté)
   - Informations personnelles (formulaire: Nom, Prénom, Email, téléphone (facultatif), Civilité (lecture seule))
   - Page modifier mot de passe
@@ -36,18 +37,18 @@
     - Inscription à la newsletter
     - Bouton de mise à jour
 
-
 ### Accès :
 
-
 #### Visiteur (non connecté)
+
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Inscription - Connexion
 
 #### Utilisateur (connecté)
+
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Profil - Modifier mot de passe
   
-
 #### Utilisateur (connecté, avec rôle admin)
+
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Profil - Modifier mot de passe - Panel Admin
 
 ## Modules Front :
@@ -55,13 +56,12 @@
 [Froala Editor](https://www.npmjs.com/package/froala-editor)
 [Sweet Pagination](https://www.npmjs.com/package/sweet-pagination)
 
-
 ## Back :
 
 ## Fonctionnalités :
 
 - Actualités :
-  - Model : 
+  - Model :
     - id
     - title
     - content (longtext)
@@ -301,7 +301,6 @@
     - ResetPassword
     - VerifyEmail
     - Login
-    - UpdateRole
     - UpdateNewsletter
     - UpdatePassword
   - Services :

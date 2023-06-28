@@ -1,59 +1,3 @@
-/*
-Signup
-Vérification des données (email, password, firstname, lastname, phone, civility, newsletter)
-Vérification de l'email (unique)
-Vérification du mot de passe (8 caractères minimum, 1 majuscule, 1 minuscule, 1 chiffre)
-Génération du token d'activation
-Génération de la date d'expiration du code d'activation
-Envoi d'un email à l'adresse de l'utilisateur
-Enregistrement de l'utilisateur et du code d'activation ainsi que de la date d'expiration du code
-Update
-Vérification des données (id de l'utilisateur, authentification via middleware (admin))
-Mise à jour des champs uniquement rensignés sinon on garde les anciennes valeurs
-Delete
-Vérification des données (id de l'utilisateur, authentification via middleware (admin))
-Mettre à jour le champ isRestricted à true
-Get / GetById
-Vérification des données (id de l'utilisateur, authentification via middleware (admin))
-GetProfile
-Vérification des données (id de l'utilisateur, authentification via middleware (user))
-ForgotPassword
-Vérification des données (email)
-Vérification de l'email (existe)
-Génération du token de réinitialisation
-Génération de la date d'expiration du code de réinitialisation
-Envoi d'un email à l'adresse de l'utilisateur
-Enregistrement du code de réinitialisation ainsi que de la date d'expiration du code
-ResetPassword
-Vérification des données (email, password, passwordResetToken)
-Vérification de l'email (existe)
-Vérification du mot de passe (8 caractères minimum, 1 majuscule, 1 minuscule, 1 chiffre)
-Vérification du token de réinitialisation (existe, non expiré)
-Mise à jour du mot de passe
-Suppression du token de réinitialisation
-VerifyEmail
-Vérification des données (email, emailVerificationToken)
-Vérification de l'email (existe)
-Vérification du token d'activation (existe, non expiré)
-Mise à jour du champ isVerified à true
-Suppression du token d'activation
-Login
-Vérification des données (email, password)
-Vérification de l'email (existe)
-Vérification du mot de passe (correspond)
-Vérification du compte (actif, vérifié)
-Génération du token d'authentification
-Mise à jour du champ accessToken
-UpdateNewsletter
-Vérification des données (id de l'utilisateur, newsletter, authentification via middleware (user))
-Mise à jour du champ newsletter
-UpdatePassword
-Vérification des données (id de l'utilisateur, password, authentification via middleware (user))
-Vérification du mot de passe (8 caractères minimum, 1 majuscule, 1 minuscule, 1 chiffre)
-Mise à jour du champ password
-*/
-
-
 const { Op } = require("sequelize");
 const { encryptPassword, comparePassword } = require("../utils/encryptPassword.utils");
 const { generateJwt } = require("../utils/generateJwt.utils");
@@ -123,7 +67,7 @@ exports.SignUp = async (req, res) => {
     }
 }
 
-exports.SignIn = async (req, res) => {
+exports.Login = async (req, res) => {
     // Le try/catch va nous permettre de gérer les erreurs sans faire planter l’API et la retourner
     // dans le catch
     try {
@@ -192,3 +136,11 @@ exports.SignIn = async (req, res) => {
 }
 
 
+exports.Update = async (req, res) => {
+    try {
+        // Code à effectuer dans la fonction
+
+    } catch (err) {
+
+    }
+}
