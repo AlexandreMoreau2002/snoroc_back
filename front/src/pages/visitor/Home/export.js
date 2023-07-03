@@ -1,6 +1,6 @@
 import Home from './Home'
-import Gallery from './Gallery'
-import Display from './Display'
+import HomeGallery from './HomeGallery'
+import HomeDisplay from './HomeDisplay'
 
 
-export { Home, Gallery, Display}
+export { Home, HomeGallery, HomeDisplay}

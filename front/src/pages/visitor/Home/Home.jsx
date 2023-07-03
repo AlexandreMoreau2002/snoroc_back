@@ -1,40 +1,46 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom'
-import Actus from '../../../asset/Actus.jpg'
+import { Helmet } from 'react-helmet'
+// import SweetPagination from 'sweetpagination'
 
 export default function Home() {
+
+  // const [currentPageData, setCurrentPageData] = useState({});
+  // const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
   return (
-    <section className='home'>
+    <>
+      <Helmet>
+        <title>Actus</title>
+      </Helmet>
+      <div className="actus">
+        
+        <h1 className="page__title">Actus</h1>  {/* a cacher au format tablette / ordi */}
+        <section className="mainActus">
+          
+          {/* Actus principal */}
 
-      <div className="mainActu">
-        <img src={Actus} alt="img" />
-        <h2>Titre </h2>
-        <p> Desc </p>
-        <time dateTime='2023-01-01'> 01/01/2023 </time>
+          {/* le titre est un liens vers l'id (donc configurer l'id qui s'affiche) de l'actus*/}
+          <Link to="/"> {/* {id} */}
+            <h3 className="mainActus__titre"> </h3>
+          </Link>
+          {/* <img src="" alt="img actus principal" className="mainActus__img"></img> api.data.img */}
+          <p className="mainActus__summaryDesc"> </p> 
+          <time dateTime="2023-01-24" className="mainActus__time"> </time> {/*api.data.time*/}
+
+
+          <p>haaaaaaaaaaa</p>
+          {/* carousel d'actus */}
+          
+          {/* <SweetPagination
+            currentPageData={setCurrentPageData}
+            getData={items}
+            dataPerPage={10}
+            navigation={true}
+          /> */}
+        </section>
       </div>
+    </>
 
-      <div className='carousel'>
-        <div className="actu2">
-          <img src={Actus} alt="actus2img" />
-        </div>
-        <div className="actu3"></div>
-        <div className="actu4"></div>
-        <div className="actu5"></div>
-        <nav>
-          <button> &lt; </button>
-
-          <button className="1">1</button>
-          <button className="2">2</button>
-          <button className="3">3</button>
-
-          <button> &gt; {/*importer une icone*/} </button> 
-        </nav>
-
-        <button>
-          <Link to="/Home/Gallery">Tout voir</Link>
-        </button>
-      </div>
-
-    </section>
   )
 }

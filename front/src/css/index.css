@@ -126,13 +126,17 @@ body {
     width: 117px;
   }
 }
-.home {
+.actus {
   font-size: 30px;
   text-align: center;
 }
-.home img {
+.actus img {
   width: 324px;
   height: 147px;
+}
+
+.about img {
+  width: 100%;
 }
 
 .footer {
