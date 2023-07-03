@@ -21,7 +21,9 @@
 const { Model, DataTypes } = require("sequelize");
 
 const sequelize = require("../../config/database.config");
+
 class User extends Model { };
+
 User.init({
     /** TABLE DE DONNÉES */
 
