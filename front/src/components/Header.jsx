@@ -12,8 +12,8 @@ export default function Header() {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </Helmet>
       
-      <span className="header__menu material-symbols-outlined"> menu </span>
-      <span className="header__close material-symbols-outlined"> close </span>
+      <button> <span id='header__menu' className="material-symbols-outlined"> menu </span> </button>
+      <button> <span id='header__close' className="material-symbols-outlined"> close </span> </button>
 
 
       <nav className='header__nav'>

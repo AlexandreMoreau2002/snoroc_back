@@ -3,35 +3,54 @@
     background-image: url(../asset/headerbg.jpg);
     height: 366px;
 
-    .header__nav__link__logo {
+    #header__close {
+        display: none;
+    }
+
+    &__nav__link__logo {
         position: absolute;
         top: 21px;
         right: 26px;
         width: 50px;
         height: 50px;
     }
+
 }
+
+// quand le header mobile est actif, display none du bouton menu, et inversement pour bouton close
+// .isActive {
+
+//     .header__menu {
+//         display: none;
+//     }
+
+//     .header__close {
+//         display: inline-block;
+//     }
+// }
+
+
 
 
 // mobile 
-@media screen and (min-width: 380px) and (max-width: 480px){
+@media screen and (min-width: 380px) and (max-width: 480px) {
     .header {
         background-position: 49% -150px;
         background-repeat: no-repeat;
         background-size: 375%;
         box-shadow: inset 0px 0px 95px 120px #1E1E1E;
-        
+
     }
 }
 
 // tablette
-@media screen and (min-width: 481px) and (max-width: 768px){
+@media screen and (min-width: 481px) and (max-width: 768px) {
     .header {
         background-position: 50% 24%;
         background-size: cover;
         box-shadow: inset 0px 50px 117px 140px #1E1E1E;
-        
-        .header__nav__link__logo {
+
+        &__nav__link__logo {
             position: absolute;
             left: 50%;
             transform: translate(-50%);
@@ -47,13 +66,22 @@
         background-position: 50% 24%;
         background-size: cover;
         box-shadow: inset 0px 50px 117px 140px #1E1E1E;
-        
-        .header__nav__link__logo {
+
+        &__nav__link__logo {
             position: absolute;
             left: 50%;
             transform: translate(-50%);
             height: 118px;
             width: 117px;
         }
+
     }
+
+    // .header {
+
+    //     #header__menu,
+    //     #header__close {
+
+    //     }
+    // }
 }

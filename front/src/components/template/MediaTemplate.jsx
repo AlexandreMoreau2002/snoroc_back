@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Media() {
+export default function MediaTemplate() {
   return (
     <div>
       
