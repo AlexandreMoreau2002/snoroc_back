@@ -29,10 +29,13 @@
   text-align: center;
 }
 
-body {
+*, ::before, ::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+body {
   height: 1000px;
   background-color: #1E1E1E;
   color: #F1F1F6;
