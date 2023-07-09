@@ -6,6 +6,8 @@ import { LegalNotice, TermsOfService} from './pages/visitor/export'
 
 import { Header, Footer} from './components/export'
 
+import ApiLink from './services/apiLink'
+
 export default function Router() {
   return (
     <BrowserRouter>

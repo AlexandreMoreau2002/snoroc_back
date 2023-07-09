@@ -12,12 +12,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // user route
 app.use('/user', require('./src/routes/user.routes'));
+
 // // news route 
 // app.use('/news', require('./src/routes/news.routes'));
+
 // // event route 
 // app.use('/event', require('./src/routes/event.routes'));
+
+// album route 
+// // app.use('/album', require(./src/routes/album.router));
+
 // // media route 
 // app.use('/media', require('./src/routes/media.routes'));
+
 // // Contact routes
 // app.use('/contact', require('./src/routes/contact.routes'));
 
