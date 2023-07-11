@@ -1,13 +1,27 @@
-import React from 'react';
-// import {useEffect, useState} from 'react';
+// import React, {useEffect, useState} from 'react';
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet'
 // import SweetPagination from 'sweetpagination'
 
 export default function Home() {
 
-  // const [currentPageData, setCurrentPageData] = useState({});
-  // const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+  // const [isLoading, setIsLoading] = useState(true) 
+  // const [news, setNews] = useState(null)
+
+  // useEffect(() => {
+  //   fetch('http://localhost:3030/news/1',
+  //   {
+  //     method: "GET",
+  //     Headers: {
+  //       'Accept' : 'Application/json'
+  //     }
+  //   })
+  //   .then(res => res.json())
+  //   .then(res => {
+  //     console.log(res)
+  //   })
+  // })
 
   return (
     <>
