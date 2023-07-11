@@ -34,7 +34,7 @@ export default function Footer() {
         </p>
 
         <Link to='/'>
-          <img src={Logo} alt="img logo" />
+          {/* <img src={Logo} alt="img logo" /> */}
 
         </Link>
       </nav>

@@ -26,10 +26,10 @@ $red : #8B0000;
     // Laptop   
 
         $header-laptop-link : 24px; 
-        $header-laptop-link-onpage : px;
-        $h1-laptop : px;
-        $h2-laptop : px;
-        $p-laptop : px;
+        $header-laptop-link-onpage : 0px;
+        $h1-laptop : 0px;
+        $h2-laptop : 0px;
+        $p-laptop : 0px;
 
     // Desktop
         $header-desktop-link : 32px; 
@@ -40,6 +40,6 @@ $red : #8B0000;
 
     // Button 
         $btn-mobile-text : 12px;
-        $btn-laptop-text : px;
+        $btn-laptop-text : 0px;
         $btn-desktop-text : 24px;
     

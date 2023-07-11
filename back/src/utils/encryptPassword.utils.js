@@ -22,5 +22,5 @@ const comparePassword = async (password, dbPassword) => {
         console.error(error);
     }
 }
-module.exports = { encryptPassword, comparePassword };
+module.exports = { comparePassword };
     // Nous allons également ajouter la fonction dans la liste des modules à exporter.

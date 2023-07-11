@@ -109,67 +109,76 @@ exports.SignUp = async (req, res) => {
     }
 }
 
-
 exports.Update = async (req, res) => {
     try {
-        // Code à effectuer dans la fonction
+        const { id, firstName, lastName, email } = req.body;
+        let { phoneNumber } = req.body;
 
-    } catch (err) {
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                error: true,
+                message: "Requête invalide."
+            });
+        }
 
-    }
-}
+        const user = await User.findOne({ where: { id: id } });
 
-exports.Delete = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
+        if (!user) {
+            return res.status(404).json({
+                error: true,
+                message: "Utilisateur introuvable."
+            });
+        }
 
-    } catch (err) {
+        const userData = {
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            email: email || user.email,
+            phoneNumber: phoneNumber || user.phoneNumber,
+        }
 
-    }
-}
+        const nameRegex = /^[a-zA-Z]+$/;
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/i;
 
-exports.GetById = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
+        if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+            return res.status(400).json({
+                error: true,
+                message: "Le nom et le prénom doivent contenir au moins 2 caractères et ne doivent pas contenir de chiffres."
+            });
+        }
 
-    } catch (err) {
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                error: true,
+                message: "L'adresse email est invalide."
+            });
+        }
 
-    }
-}
+        if (phoneNumber) {
+            const phoneData = await phone(phoneNumber, { country: 'FR' })
+            if (!phoneData.isValid) {
+                return res.status(400).json({
+                    error: true,
+                    message: 'Le numéro de téléphone est incorrect.'
+                })
+            } else {
+                phoneNumber = phoneData.phoneNumber
+            }
+        }
 
-exports.GetProfile = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
+        await user.update(userData);
 
-    } catch (err) {
+        return res.status(200).json({
+            error: false,
+            message: "Le profil a bien été mis à jour."
+        });
 
-    }
-}
-
-exports.ForgotPassword = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
-
-    } catch (err) {
-
-    }
-}
-
-exports.ResetPassword = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
-
-    } catch (err) {
-
-    }
-}
-
-exports.VerifyEmail = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
-
-    } catch (err) {
-
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            error: true,
+            message: "Une erreur interne est survenue, veuillez réessayer plus tard."
+        });
     }
 }
 
@@ -236,23 +245,5 @@ exports.Login = async (req, res) => {
             error: true,
             message: `Une erreur est survenue : ${err}.`
         });
-    }
-}
-
-exports.UpdateNewsletter = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
-
-    } catch (err) {
-
-    }
-}
-
-exports.UpdatePassword = async (req, res) => {
-    try {
-        // Code à effectuer dans la fonction
-
-    } catch (err) {
-
     }
 }

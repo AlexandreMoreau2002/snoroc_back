@@ -11,10 +11,9 @@ export default function Header() {
       <Helmet>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </Helmet>
-      
+
       <button> <span id='header__menu' className="material-symbols-outlined"> menu </span> </button>
       <button> <span id='header__close' className="material-symbols-outlined"> close </span> </button>
-
 
       <nav className='header__nav'>
         <NavLink to="/" activeClassName="header__nav__link--active active" className='header__nav__link' > Actus </NavLink>
@@ -24,6 +23,7 @@ export default function Header() {
         <NavLink to="/Contact" activeClassName="header__nav__link--active active" className='header__nav__link' > Contact </NavLink>
         <NavLink to="/Profil" activeClassName="header__nav__link--active active" className='header__nav__link' > Profil </NavLink>
       </nav>
+
       <Link to="/">
         <img src={Logo} alt="Logo" className='header__nav__link__logo' />
       </Link>

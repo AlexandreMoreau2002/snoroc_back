@@ -2,7 +2,17 @@
 
 .header__nav {
     text-align: center;
+    white-space: nowrap;
+
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+
+    height: auto;
+    padding: 10% 8%;
+
 
     &__link {
         font-family: $asap;
@@ -13,8 +23,9 @@
             content: '';
             display: block;
             width: 100%;
-            height: 2px;
+            height: 3px;
             margin-top: 6px;
+            border-radius: 0 50% 0 0;
             background-color: $blue;
             transform: scaleX(0);
             transition: transform 0.25s;
@@ -36,41 +47,23 @@
 @media screen and (max-width: 480px) {
     .header__nav {
 
-        flex-direction: column;
-        align-items: flex-start;
-        font-size: $header-mobile-link;
+        padding: 20% 8% 10% 8%;
 
         &__link--active {
             font-size: $header-mobile-link-onpage;
-
-        }
-
-        &__link {
-            padding: 15px 20px 15px 20px;
 
         }
     }
 }
 
 // tablette
-@media screen and (min-width: 481px) and (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .header__nav {
 
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 60px;
-        height: 121px;
-        padding: 35px 70px;
         font-size: $header-desktop-link;
 
-        &__link {
-            padding: 0 20px;
-
-        }
-
-        :nth-child(3) {
-            margin-right: auto;
+        :nth-child(1) {
+            margin-top: 30px;
         }
     }
 }
@@ -80,19 +73,14 @@
     .header__nav {
 
         flex-direction: row;
-        justify-content: space-between;
-        gap: 60px;
-        height: 121px;
-        padding: 35px 70px;
+
+        padding: 30px 70px;
         font-size: $header-desktop-link;
+        height: auto;
+        width: auto;
 
-        &__link {
-            padding: 0 20px;
-
-        }
-
-        :nth-child(3) {
-            margin-right: auto;
+        :nth-child(4) {
+            margin-left: 25%;
         }
     }
 }
