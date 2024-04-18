@@ -2,7 +2,7 @@
 
 ## Front
 
-## Pages :
+## Pages
 
 - Accueil
   - Actualités
@@ -37,7 +37,7 @@
     - Inscription à la newsletter
     - Bouton de mise à jour
 
-### Accès :
+### Accès
 
 #### Visiteur (non connecté)
 
@@ -46,19 +46,19 @@
 #### Utilisateur (connecté)
 
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Profil - Modifier mot de passe
-  
+
 #### Utilisateur (connecté, avec rôle admin)
 
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Profil - Modifier mot de passe - Panel Admin
 
-## Modules Front :
+## Modules Front
 
 [Froala Editor](https://www.npmjs.com/package/froala-editor)
 [Sweet Pagination](https://www.npmjs.com/package/sweet-pagination)
 
-## Back :
+## Back
 
-## Fonctionnalités :
+## Fonctionnalités
 
 - Actualités :
   - Model :
