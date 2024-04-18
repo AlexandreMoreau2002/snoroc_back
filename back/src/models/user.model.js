@@ -22,109 +22,112 @@ const { Model, DataTypes } = require("sequelize");
 
 const sequelize = require("../../config/database.config");
 
-class User extends Model { };
+class User extends Model {}
 
-User.init({
-  /** TABLE DE DONNÉES */
+User.init(
+  {
+    /** TABLE DE DONNÉES */
 
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+
+    firstname: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    lastname: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+
+    userPhone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    civility: {
+      type: DataTypes.STRING,
+      allowNull: true, // false par defaut mais modifier pour essayer l'api
+      defaultValue: "Not Specified", // Une valeur par défaut exemple
+    },
+
+    password: {
+      type: DataTypes.TEXT("long"),
+      allowNull: false,
+    },
+
+    newsletter: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+
+    accessToken: {
+      type: DataTypes.TEXT("long"),
+      allowNull: true,
+    },
+
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true, // false par defaut mais modifier pour essayer l'api
+    },
+
+    emailVerificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    emailVerificationTokenExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+    isRestricted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true, // false par defaut mais modifier pour essayer l'api
+    },
+
+    passwordResetTokenExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
-
-  firstname: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-
-  lastname: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  },
-
-  userPhone: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-
-  civility: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-
-  password: {
-    type: DataTypes.TEXT('long'),
-    allowNull: false
-  },
-
-  newsletter: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-
-  accessToken: {
-    type: DataTypes.TEXT('long'),
-    allowNull: true
-  },
-
-  isAdmin: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-
-  isActive: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-
-  isVerified: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false
-  },
-
-  emailVerificationToken: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-
-  emailVerificationTokenExpires: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-
-  isRestricted: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false
-  },
-
-  passwordResetTokenExpires: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-
-  createdAt: {
-    type: DataTypes.DATE
-  },
-
-  updatedAt: {
-    type: DataTypes.DATE,
-    allowNull: false
+  {
+    sequelize,
+    tableName: "users", // Le nom de la table dans la BDD
+    modelName: "User", // Le nom du modèle créé ci-dessus
   }
-
-}, {
-  sequelize,
-  tableName: 'users', // Le nom de la table dans la BDD
-  modelName: 'User' // Le nom du modèle créé ci-dessus
-});
+);
 module.exports = User;

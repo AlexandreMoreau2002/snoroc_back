@@ -6,6 +6,7 @@ import { LegalNotice, TermsOfService} from './pages/visitor/export'
 
 import { Header, Footer} from './components/export'
 
+//pas encore operationnel : 
 // import ApiLink from './services/apiLink'
 
 export default function Router() {
@@ -39,6 +40,7 @@ export default function Router() {
             <Route path="/CGU" element={<TermsOfService/>} />
 
             {/* Error 404 */}
+            {/* ajouter par la suite une page 404 avec bouton de redirection vers la home */}
             <Route path="/*" element={<Home />} />
 
           </Routes>

@@ -7,10 +7,10 @@ const encryptPassword = async (password) => {
         // grâce au await.
         return encryptedPassword;
     } catch (error) {
-        console.error(error);
+        // on affiche l'erreur dans la console 
+        console.error("error hashing password",error);
     }
 }
-module.exports = { encryptPassword };
 
 const comparePassword = async (password, dbPassword) => {
     try {
@@ -19,8 +19,7 @@ const comparePassword = async (password, dbPassword) => {
         // base de données et renvoyer un booléen : true = mot de passe valide, false = invalide
         return isPasswordValid;
     } catch (error) {
-        console.error(error);
+        console.error("Error comparing password:", error);
     }
 }
-module.exports = { comparePassword };
-    // Nous allons également ajouter la fonction dans la liste des modules à exporter.
+module.exports = { encryptPassword, comparePassword };

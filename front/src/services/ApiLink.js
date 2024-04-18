@@ -7,7 +7,7 @@ export default class ApiLink {
 
     #post = (endpoint, data) => {
         if (!endpoint) {
-            return {error: true, message: "aucun endpoint n\'a été defini" }
+            return { error: true, message: "aucun endpoint n\'a été defini" }
         }
 
         const reqOptions = {
@@ -23,18 +23,18 @@ export default class ApiLink {
         }
 
         return axios(`${this.baseUrl}${endpoint}`, reqOptions)
-        .then((res) => res.data)
-        .catch((error) => error?.response?.data || { data: { error: true, message: "une erreur est survenue" } })
+            .then((res) => res.data)
+            .catch((error) => error?.response?.data || { data: { error: true, message: "une erreur est survenue" } })
     }
 
     // #get = 
 
     // #patch = 
-    
+
     // #put = 
 
     // #delete = 
-    
+
 
     user = {
         SignUp: async (data) => {

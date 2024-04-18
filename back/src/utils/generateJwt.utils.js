@@ -1,13 +1,15 @@
+require('dotenv').config();
+const secretKey = process.env.JWT_SECRET; // Clé secrète stockée dans le fichier .env
+
 const jwt = require("jsonwebtoken");
 
 const generateJwt = async (data) => {
     try {
-        const accessToken = await jwt.sign(data, 'MySuperSecretText', { expiresIn: '1h' });
-        // Vous remplacerez la chaîne de caractère par un code “secret” qui servira de signature au
-        // token
+        const accessToken = await jwt.sign(data, secretKey, { expiresIn: '1h' });
         return accessToken;
     } catch (error) {
         console.error(error);
+        throw new Error('Failed to generate JWT');
     }
 }
 module.exports = { generateJwt };
