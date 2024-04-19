@@ -308,7 +308,7 @@
       - Envoi d'un email à l'adresse de contact
       - Envoi d'un email à l'adresse de l'utilisateur
   - Utils :
-    - Génération de token JWT
     - Envoi d'email
-    - Génération de code à 6 chiffres
-    - Génération de date d'expiration
+    - Hash password
+    - Génération de code à 6 chiffres & Génération de date d'expiration
+    - Génération de token JWT
