@@ -1,5 +1,4 @@
 require("dotenv").config();
-// const nodemailer = require("nodemailer");
 const { sendEmail } = require("../utils/email.utils");
 
 const { phone } = require("phone");
@@ -76,12 +75,9 @@ exports.SignUp = async (req, res) => {
 
     // Securité
     const encryptedPassword = await encryptPassword(password);
-    const accessToken = await generateJwt({
-      firstname: User.firstname,
-      email: User.email,
-    });
+    const accessToken = Math.floor(1000 + Math.random() * 9000);
 
-    // Mail
+    // Email
     const emailData = {
       from: process.env.EMAIL_USERNAME,
       to: email,
@@ -108,10 +104,9 @@ exports.SignUp = async (req, res) => {
       password: encryptedPassword,
       newsletter: newsletter,
       emailVerificationToken: accessToken,
-      emailVerificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-      isActive: false,
-      isVerified: false,
-      isRestricted: false,
+      emailVerificationTokenExpires: new Date(
+        Date.now() + 15 * 60 * 1000 + 2 * 60 * 60 * 1000
+      ),
     };
 
     // envoi des données a la bdd
@@ -130,6 +125,15 @@ exports.SignUp = async (req, res) => {
     });
   }
 };
+
+// export.VerifyEmail(req, res){
+//   const init = 0
+//   try {
+//     return 0
+//   } catch (error) {
+//     res.status(400).send(error.message);
+// }
+// }
 
 // fonction de control des connections des utilisateurs
 exports.Login = async (req, res) => {
@@ -264,8 +268,6 @@ exports.Update = async (req, res) => {
 // forgotpassword
 
 // resertpassword
-
-// verify email
 
 // Update newsletter
 
