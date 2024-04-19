@@ -80,7 +80,7 @@ exports.SignUp = async (req, res) => {
     const emailData = emailDataVerification(email, VerificationCode);
     const emailResult = await sendEmail(emailData);
     if (!emailResult.success) {
-      return res.status(500).json({erro:true, message: emailResult.message});
+      return res.status(500).json({error: true, message: emailResult.message });
     }
 
     // Donnée a envoyer a la db
@@ -114,33 +114,46 @@ exports.SignUp = async (req, res) => {
 };
 
 exports.VerifyEmail = async (req, res) => {
-  // - Vérification des données (email, emailVerificationToken)
-  // - Vérification de l'email (existe)✅
-  // - Vérification du token d'activation (existe, non expiré)✅
-  // - Mise à jour du champ isVerified à true
-  // - Suppression du token d'activation
   const { email, emailVerificationToken } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      where: {
+        email: email,
+      },
+    });
     if (!user) {
       throw new Error("Utilisateur introuvable");
     }
+
     if (
       !user.emailVerificationToken ||
-      new Date() > user.emailVerificationTokenExpires
+      new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString() >
+        user.emailVerificationTokenExpires.toISOString()
     ) {
-      // if (!user.emailVerificationToken || new Date() > new Date(user.emailVerificationTokenExpires)) {
       throw new Error("Token invalide ou expiré.");
     }
 
+    // Verification du tokken
+    const code = user.emailVerificationToken;
+    if (code !== emailVerificationToken) {
+      throw new Error("Le code fourni est incorrect.");
+    }
+
     // Mise à jour de l'utilisateur comme vérifié et suppression du token
-    await user.updateOne({
+    await user.update({
       isVerified: true,
       emailVerificationToken: null,
       emailVerificationTokenExpires: null,
     });
-  } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(200).json({
+      error: false,
+      message: "Email validé.",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: true,
+      message: `Une erreur est survenue : ${err}.`,
+    });
   }
 };
 
