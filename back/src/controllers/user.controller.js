@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { sendEmail } = require("../utils/email.utils");
+const { emailDataVerification } = require("../services/email.user");
 
 const { phone } = require("phone");
 const User = require("../models/user.model");
@@ -9,18 +10,12 @@ const {
 } = require("../utils/encryptPassword.utils");
 const { generateJwt } = require("../utils/generateJwt.utils");
 
-// fonction de control pour l'inscription
-
-// Vérification des données (email, password, firstname, lastname, phone, civility, newsletter)✅
-// Vérification de l'email (unique)✅
-// Vérification du mot de passe (8 caractères minimum, 1 majuscule, 1 minuscule, 1 chiffre)✅
-// Génération du token d'activation✅
-// Génération de la date d'expiration du code d'activation✅
-// Envoi d'un email à l'adresse de l'utilisateur✅
-// Enregistrement de l'utilisateur et du code d'activation ainsi que de la date d'expiration du code✅
+const {
+  generateVerificationCode,
+  generateExpirationDate,
+} = require("../utils/expiration.utils");
 
 exports.SignUp = async (req, res) => {
-  // Le try/catch permet de gérer les erreurs sans faire planter l’API et la retourner dans le catch
   try {
     const {
       firstname,
@@ -80,26 +75,15 @@ exports.SignUp = async (req, res) => {
 
     // Securité
     const encryptedPassword = await encryptPassword(password);
-    const accessToken = Math.floor(1000 + Math.random() * 9000);
+    const VerificationCode = generateVerificationCode();
 
-    // Email
-    const emailData = {
-      from: process.env.EMAIL_USERNAME,
-      to: email,
-      subject: "Activation de votre compte",
-      text: `Votre code d'activation est : ${accessToken}. Il est valide pour 15 minutes.`,
-      html: `<p>Votre code d'activation est : </p><br><p><strong>${accessToken}</strong></p><br> <p>Il est valide pour <strong>15 minutes</strong>.</p>`,
-    };
-
-    // Appel de la fonction d'envoi d'email
+    const emailData = emailDataVerification(email, VerificationCode);
     const emailResult = await sendEmail(emailData);
     if (!emailResult.success) {
-      return res
-        .status(500)
-        .json({ error: true, message: emailResult.message });
+      return res.status(500).json({erro:true, message: emailResult.message});
     }
 
-    // Donnée a envoyer
+    // Donnée a envoyer a la db
     const userData = {
       firstname: firstname,
       lastname: lastname,
@@ -108,10 +92,8 @@ exports.SignUp = async (req, res) => {
       civility: civility,
       password: encryptedPassword,
       newsletter: newsletter,
-      emailVerificationToken: accessToken,
-      emailVerificationTokenExpires: new Date(
-        Date.now() + 15 * 60 * 1000 + 2 * 60 * 60 * 1000
-      ),
+      emailVerificationToken: VerificationCode,
+      emailVerificationTokenExpires: generateExpirationDate(15),
     };
 
     // envoi des données a la bdd
@@ -131,14 +113,36 @@ exports.SignUp = async (req, res) => {
   }
 };
 
-// export.VerifyEmail(req, res){
-//   const init = 0
-//   try {
-//     return 0
-//   } catch (error) {
-//     res.status(400).send(error.message);
-// }
-// }
+exports.VerifyEmail = async (req, res) => {
+  // - Vérification des données (email, emailVerificationToken)
+  // - Vérification de l'email (existe)✅
+  // - Vérification du token d'activation (existe, non expiré)✅
+  // - Mise à jour du champ isVerified à true
+  // - Suppression du token d'activation
+  const { email, emailVerificationToken } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("Utilisateur introuvable");
+    }
+    if (
+      !user.emailVerificationToken ||
+      new Date() > user.emailVerificationTokenExpires
+    ) {
+      // if (!user.emailVerificationToken || new Date() > new Date(user.emailVerificationTokenExpires)) {
+      throw new Error("Token invalide ou expiré.");
+    }
+
+    // Mise à jour de l'utilisateur comme vérifié et suppression du token
+    await user.updateOne({
+      isVerified: true,
+      emailVerificationToken: null,
+      emailVerificationTokenExpires: null,
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
 
 // fonction de control des connections des utilisateurs
 exports.Login = async (req, res) => {
