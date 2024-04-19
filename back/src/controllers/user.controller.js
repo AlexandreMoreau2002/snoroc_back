@@ -58,12 +58,17 @@ exports.SignUp = async (req, res) => {
     }
 
     // normalisation de userPhone
-    const phoneData = phone(userPhone, { country: "FR" }); // Assumez que userPhone est "+33769666370" et le pays est la France
+    const phoneData = phone(userPhone, { country: "FR" });
     if (phoneData.isValid) {
-      console.log(phoneData.phoneNumber); // Cela devrait imprimer un numéro normalisé
+      console.log(phoneData.phoneNumber);
     } else {
       console.log("Numéro de téléphone non valide");
     }
+
+    // Test avec différents formats
+    // console.log(phone("+33769666370", { country: "FR" })); // Format international
+    // console.log(phone("0769666370", { country: "FR" })); // Format national sans indicatif
+    // console.log("Test Invalid Phone:", phone("12345", { country: 'FR' }));
 
     // Vérification de l'unicité de l'email
     const isUserExist = await User.findOne({ where: { email: email } });
@@ -99,7 +104,7 @@ exports.SignUp = async (req, res) => {
       firstname: firstname,
       lastname: lastname,
       email: email,
-      phone: userPhone,
+      userPhone: phoneData.phoneNumber,
       civility: civility,
       password: encryptedPassword,
       newsletter: newsletter,
