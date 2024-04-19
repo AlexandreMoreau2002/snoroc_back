@@ -44,7 +44,7 @@ router.post("/login", Login); // Permet à un utilisateur de se connecter
 // router.post("/reset-password", ResetPassword); // Permet de réinitialiser le mot de passe
 //
 // // Route pour la vérification de l'email. Utilise la méthode HTTP GET.
-router.get("/verify-email", VerifyEmail); // Permet de vérifier l'adresse email de l'utilisateur
+router.post("/verify-email", VerifyEmail); // Permet de vérifier l'adresse email de l'utilisateur
 //
 // // Route pour la mise à jour de l'abonnement à la newsletter. Utilise la méthode HTTP PATCH.
 // router.patch("/update-newsletter", UpdateNewsletter); // Met à jour l'abonnement à la newsletter
