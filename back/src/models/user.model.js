@@ -1,29 +1,6 @@
-// id
-// email
-// password
-// firstname
-// lastname
-// phone
-// civility
-// accessToken (JWT)
-// newsletter (boolean)
-// isAdmin (boolean)
-// isActive (boolean)
-// isVerified (boolean)
-// emailVerificationToken (code à 6 chiffres)
-// emailVerificationTokenExpires (date d'expiration du token (15 minutes))
-// isRestricted (boolean)
-// passwordResetToken (code à 6 chiffres)
-// passwordResetTokenExpires (date d'expiration du token (15 minutes))
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
-
 class User extends Model {}
-
 User.init(
   {
     /** TABLE DE DONNÉES */
@@ -58,8 +35,8 @@ User.init(
 
     civility: {
       type: DataTypes.STRING,
-      allowNull: true, // false par defaut mais modifier pour essayer l'api
-      defaultValue: "Not Specified", // Une valeur par défaut exemple
+      allowNull: false,
+      defaultValue: "Not Specified",
     },
 
     password: {
@@ -92,7 +69,8 @@ User.init(
 
     isVerified: {
       type: DataTypes.BOOLEAN,
-      allowNull: true, // false par defaut mais modifier pour essayer l'api
+      defaultValue: false,
+      allowNull: false,
     },
 
     emailVerificationToken: {
@@ -107,7 +85,8 @@ User.init(
 
     isRestricted: {
       type: DataTypes.BOOLEAN,
-      allowNull: true, // false par defaut mais modifier pour essayer l'api
+      defaultValue: false,
+      allowNull: false,
     },
 
     passwordResetTokenExpires: {
