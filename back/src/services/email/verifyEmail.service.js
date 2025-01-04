@@ -1,3 +1,5 @@
+// back/src/services/email/verifyEmail.service.js
+
 /**
  * Prépare les données de l'email pour l'envoi du code de vérification.
  * @param {string} to - Adresse email du destinataire.
@@ -16,6 +18,3 @@ const emailDataVerification = (to, code) => {
 };
 
 module.exports = { emailDataVerification };
-
-
-// other email template function for user
