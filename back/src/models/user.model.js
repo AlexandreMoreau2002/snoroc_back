@@ -36,11 +36,11 @@ User.init(
     civility: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Not Specified",
+      defaultValue: 'Not Specified',
     },
 
     password: {
-      type: DataTypes.TEXT("long"),
+      type: DataTypes.TEXT('long'),
       allowNull: false,
     },
 
@@ -51,7 +51,7 @@ User.init(
     },
 
     accessToken: {
-      type: DataTypes.TEXT("long"),
+      type: DataTypes.TEXT('long'),
       allowNull: true,
     },
 
@@ -89,6 +89,11 @@ User.init(
       allowNull: false,
     },
 
+    passwordResetToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     passwordResetTokenExpires: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -105,8 +110,8 @@ User.init(
   },
   {
     sequelize,
-    tableName: "users", // Le nom de la table dans la BDD
-    modelName: "User", // Le nom du modèle créé ci-dessus
+    tableName: 'users', // Le nom de la table dans la BDD
+    modelName: 'User', // Le nom du modèle créé ci-dessus
   }
-);
+)
 module.exports = User;

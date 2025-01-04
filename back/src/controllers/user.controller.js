@@ -1,6 +1,6 @@
 require("dotenv").config();
-const { sendEmail } = require("../utils/email.utils");
-const { emailDataVerification } = require("../services/email.user");
+const { sendEmail } = require("../../config/nodemailer.config");
+const { emailDataVerification } = require("../services/email/verifyEmail.service");
 
 const { phone } = require("phone");
 const User = require("../models/user.model");
@@ -13,7 +13,7 @@ const { generateJwt } = require("../utils/generateJwt.utils");
 const {
   generateVerificationCode,
   generateExpirationDate,
-} = require("../utils/expiration.utils");
+} = require("../utils/validation.utils");
 
 exports.SignUp = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ exports.SignUp = async (req, res) => {
     } = req.body;
     if (!firstname || !lastname || !email || !password || !civility) {
       return res.status(400).json({
-        error: true,
+        value: false,
         message:
           "La requête est invalide, Tous les champs doivent être remplis.",
       });
@@ -38,7 +38,7 @@ exports.SignUp = async (req, res) => {
     if (!emailRegex.test(email)) {
       // Si le format de l’adresse mail est incorrecte, on renvoi une erreur à l’utilisateur
       return res.status(400).json({
-        error: true,
+        value: false,
         message: "L'email n’est pas dans le bon format.",
       });
     }
@@ -46,7 +46,7 @@ exports.SignUp = async (req, res) => {
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
-        error: true,
+        value: false,
         message:
           "Le mot de passe doit contenir au moins 8 caractères, dont au moins une majuscule, une minuscule et un chiffre.",
       });
@@ -80,7 +80,7 @@ exports.SignUp = async (req, res) => {
     const emailData = emailDataVerification(email, VerificationCode);
     const emailResult = await sendEmail(emailData);
     if (!emailResult.success) {
-      return res.status(500).json({error: true, message: emailResult.message });
+      return res.status(500).json({value: false, message: emailResult.message });
     }
 
     // Donnée a envoyer a la db
@@ -107,7 +107,7 @@ exports.SignUp = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({
-      error: true,
+      value: false,
       message: `Une erreur est survenue : ${err.message}.`,
     });
   }
@@ -151,7 +151,7 @@ exports.VerifyEmail = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
-      error: true,
+      value: false,
       message: `Une erreur est survenue : ${err}.`,
     });
   }
@@ -164,7 +164,7 @@ exports.Login = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ error: true, message: "La requête est invalide." });
+        .json({ value: false, message: "La requête est invalide." });
     }
 
     let user;
@@ -175,7 +175,7 @@ exports.Login = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        error: true,
+        value: false,
         message: "L'identifiant et/ou le mot de passe est incorrect.",
       });
     }
@@ -183,7 +183,7 @@ exports.Login = async (req, res) => {
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
-        error: true,
+        value: false,
         message: "L'identifiant et/ou le mot de passe est incorrect.",
       });
     }
@@ -201,100 +201,458 @@ exports.Login = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
-      error: true,
+      value: false,
       message: `Une erreur est survenue : ${err}.`,
     });
   }
 };
 
 // fonction pour l'update de données utilisateurs
-
-// Vérification des données (id de l'utilisateur, authentification via middleware (admin))
-// Mise à jour des champs uniquement rensignés sinon on garde les anciennes valeurs
-
 exports.Update = async (req, res) => {
   try {
-    const { id, firstName, lastName, email } = req.body;
-    let { phoneNumber } = req.body;
+    const { id, firstName, lastName, email, phoneNumber } = req.body
 
+    // Validation de l'ID
     if (!id || isNaN(id)) {
       return res.status(400).json({
-        error: true,
-        message: "Requête invalide.",
-      });
+        value: false,
+        message: 'Requête invalide : ID utilisateur manquant ou incorrect.',
+      })
     }
 
-    const user = await User.findOne({ where: { id: id } });
+    // Récupération de l'utilisateur
+    const user = await User.findOne({ where: { id } })
 
     if (!user) {
       return res.status(404).json({
-        error: true,
-        message: "Utilisateur introuvable.",
-      });
+        value: false,
+        message: 'Utilisateur introuvable.',
+      })
     }
 
+    // Validation des données optionnelles
+    const nameRegex = /^[a-zA-Z]+$/
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/i
+
+    if (firstName && !nameRegex.test(firstName)) {
+      return res.status(400).json({
+        value: false,
+        message: 'Le prénom doit contenir uniquement des lettres.',
+      })
+    }
+
+    if (lastName && !nameRegex.test(lastName)) {
+      return res.status(400).json({
+        value: false,
+        message: 'Le nom doit contenir uniquement des lettres.',
+      })
+    }
+
+    if (email && !emailRegex.test(email)) {
+      return res.status(400).json({
+        value: false,
+        message: "L'adresse email est invalide.",
+      })
+    }
+
+    if (phoneNumber) {
+      const phoneData = await phone(phoneNumber, { country: 'FR' })
+      if (!phoneData.isValid) {
+        return res.status(400).json({
+          value: false,
+          message: 'Le numéro de téléphone est incorrect.',
+        })
+      }
+    }
+
+    // Mise à jour des données
     const userData = {
       firstName: firstName || user.firstName,
       lastName: lastName || user.lastName,
       email: email || user.email,
       phoneNumber: phoneNumber || user.phoneNumber,
-    };
+    }
 
-    const nameRegex = /^[a-zA-Z]+$/;
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/i;
+    await user.update(userData)
 
-    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+    // Réponse
+    return res.status(200).json({
+      error: false,
+      message: 'Le profil a bien été mis à jour.',
+      data: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+      },
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      value: false,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
+
+// delete user
+exports.Delete = async (req, res) => {
+  try {
+    const { id } = req.body
+
+    // Vérification de l'ID
+    if (!id || isNaN(id)) {
       return res.status(400).json({
-        error: true,
-        message:
-          "Le nom et le prénom doivent contenir au moins 2 caractères et ne doivent pas contenir de chiffres.",
-      });
+        value: false,
+        message: 'Requête invalide : ID utilisateur manquant ou incorrect.',
+      })
     }
 
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: true,
-        message: "L'adresse email est invalide.",
-      });
+    // Récupération de l'utilisateur
+    const user = await User.findOne({ where: { id } })
+
+    if (!user) {
+      return res.status(404).json({
+        value: false,
+        message: 'Utilisateur introuvable.',
+      })
     }
 
-    if (phoneNumber) {
-      const phoneData = await phone(phoneNumber, { country: "FR" });
-      if (!phoneData.isValid) {
-        return res.status(400).json({
-          error: true,
-          message: "Le numéro de téléphone est incorrect.",
-        });
-      } else {
-        phoneNumber = phoneData.phoneNumber;
-      }
-    }
-
-    await user.update(userData);
+    // Suppression de l'utilisateur
+    await user.destroy()
 
     return res.status(200).json({
       error: false,
-      message: "Le profil a bien été mis à jour.",
-    });
+      message: "L'utilisateur a été supprimé avec succès.",
+    })
   } catch (error) {
-    console.log(error);
+    console.error(error)
     return res.status(500).json({
-      error: true,
-      message: "Une erreur interne est survenue, veuillez réessayer plus tard.",
-    });
+      value: false,
+      message: 'Une erreur interne est survenue.',
+    })
   }
-};
-
-// delete user
+}
 
 // getbyid
+exports.GetById = async (req, res) => {
+  try {
+    const { id } = req.params
 
+    // Validation de l'ID
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        value: false,
+        message: 'Requête invalide : ID utilisateur manquant ou incorrect.',
+      })
+    }
+
+    // Récupération de l'utilisateur
+    const user = await User.findOne({
+      where: { id },
+      attributes: [
+        'id',
+        'firstname',
+        'lastname',
+        'email',
+        'userPhone',
+        'civility',
+        'newsletter',
+        'isVerified',
+        'createdAt',
+        'updatedAt',
+      ],
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        value: false,
+        message: 'Utilisateur introuvable.',
+      })
+    }
+
+    return res.status(200).json({
+      error: false,
+      data: user,
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      value: false,
+      message: 'Une erreur interne est survenue.',
+    })
+  }
+}
 // get profile
+exports.GetProfile = async (req, res) => {
+  try {
+    const { userId } = req.user // L'utilisateur connecté (via middleware d'authentification)
+
+    if (!userId) {
+      return res.status(401).json({
+        value: false,
+        message: 'Utilisateur non authentifié.',
+      })
+    }
+
+    // Récupérer le profil de l'utilisateur
+    const user = await User.findOne({
+      where: { id: userId },
+      attributes: { exclude: ['password', 'accessToken'] }, // Exclure les données sensibles
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        value: false,
+        message: 'Profil utilisateur introuvable.',
+      })
+    }
+
+    return res.status(200).json({
+      error: false,
+      data: user,
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      value: false,
+      message: 'Une erreur interne est survenue.',
+    })
+  }
+}
 
 // forgotpassword
+exports.ForgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body
+
+    // Validation de l'email
+    if (!email) {
+      return res.status(400).json({
+        status: false,
+        message: "L'email est requis.",
+      })
+    }
+
+    const user = await User.findOne({ where: { email } })
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: 'Aucun utilisateur trouvé avec cet email.',
+      })
+    }
+
+    // Générer un token de réinitialisation
+    const resetToken = generateVerificationCode()
+    user.passwordResetToken = resetToken
+    user.passwordResetTokenExpires = generateExpirationDate(15)
+    await user.save()
+
+    // Envoyer un email avec le token
+    const emailData = emailDataVerification(email, resetToken)
+    const emailResult = await sendEmail(emailData)
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        status: false,
+        message: "Échec de l'envoi de l'email.",
+      })
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: 'Un email de réinitialisation de mot de passe a été envoyé.',
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      status: false,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
 
 // resertpassword
+exports.ResetPassword = async (req, res) => {
+  try {
+    const { email, resetToken, newPassword } = req.body
+
+    // Validation des données
+    if (!email || !resetToken || !newPassword) {
+      return res.status(400).json({
+        status: false,
+        message:
+          'Email, token de réinitialisation et nouveau mot de passe sont requis.',
+      })
+    }
+
+    // Vérification du format du mot de passe
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        status: false,
+        message:
+          'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.',
+      })
+    }
+
+    // Récupération de l'utilisateur
+    const user = await User.findOne({ where: { email } })
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: 'Aucun utilisateur trouvé avec cet email.',
+      })
+    }
+
+    // Vérification du token et de son expiration
+    if (
+      !user.passwordResetToken ||
+      user.passwordResetToken !== resetToken ||
+      new Date() > user.passwordResetTokenExpires
+    ) {
+      return res.status(400).json({
+        status: false,
+        message: 'Token de réinitialisation invalide ou expiré.',
+      })
+    }
+
+    // Mise à jour du mot de passe
+    const encryptedPassword = await encryptPassword(newPassword)
+    await user.update({
+      password: encryptedPassword,
+      passwordResetToken: null,
+      passwordResetTokenExpires: null,
+    })
+
+    return res.status(200).json({
+      status: true,
+      message: 'Votre mot de passe a été réinitialisé avec succès.',
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      status: false,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
 
 // Update newsletter
+exports.UpdateNewsletter = async (req, res) => {
+  try {
+    const { id, newsletter } = req.body
+
+    // Validation des données
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        value: false,
+        message: 'Requête invalide : ID utilisateur manquant ou incorrect.',
+      })
+    }
+
+    if (typeof newsletter !== 'boolean') {
+      return res.status(400).json({
+        value: false,
+        message: "Le champ 'newsletter' doit être de type boolean.",
+      })
+    }
+
+    // Récupérer l'utilisateur
+    const user = await User.findOne({ where: { id } })
+
+    if (!user) {
+      return res.status(404).json({
+        value: false,
+        message: 'Utilisateur introuvable.',
+      })
+    }
+
+    // Mise à jour de la newsletter
+    user.newsletter = newsletter
+    await user.save()
+
+    return res.status(200).json({
+      error: false,
+      message: 'Abonnement à la newsletter mis à jour avec succès.',
+      data: { id: user.id, newsletter: user.newsletter },
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      value: false,
+      message: 'Une erreur interne est survenue.',
+    })
+  }
+}
 
 // Update password
+exports.UpdatePassword = async (req, res) => {
+  try {
+    const { id, currentPassword, newPassword } = req.body
+
+    // Validation des données
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        value: false,
+        message: 'Requête invalide : ID utilisateur manquant ou incorrect.',
+      })
+    }
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        value: false,
+        message:
+          'Le mot de passe actuel et le nouveau mot de passe sont requis.',
+      })
+    }
+
+    // Vérification du format du nouveau mot de passe
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        value: false,
+        message:
+          'Le nouveau mot de passe doit contenir au moins 8 caractères, dont une majuscule, une minuscule et un chiffre.',
+      })
+    }
+
+    // Récupération de l'utilisateur
+    const user = await User.findOne({ where: { id } })
+    if (!user) {
+      return res.status(404).json({
+        value: false,
+        message: 'Utilisateur introuvable.',
+      })
+    }
+
+    // Vérification du mot de passe actuel
+    const isPasswordValid = await comparePassword(
+      currentPassword,
+      user.password
+    )
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        value: false,
+        message: 'Le mot de passe actuel est incorrect.',
+      })
+    }
+
+    // Mise à jour du mot de passe
+    const encryptedPassword = await encryptPassword(newPassword)
+    await user.update({ password: encryptedPassword })
+
+    return res.status(200).json({
+      error: false,
+      message: 'Le mot de passe a été mis à jour avec succès.',
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      value: false,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
