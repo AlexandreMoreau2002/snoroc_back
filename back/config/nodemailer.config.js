@@ -17,7 +17,7 @@ async function sendEmail({ from, to, subject, text, html }) {
   const transporter = nodemailer.createTransport({
     service: "gmail", // SMTP service provider
     auth: {
-      user: process.env.EMAIL_USERNAME, // SMTP username from environment variables
+      user: process.env.EMAIL, // SMTP username from environment variables
       pass: process.env.EMAIL_PASSWORD, // SMTP password from environment variables
     },
   });

@@ -9,7 +9,7 @@
 
 const emailDataVerification = (to, code) => {
     return {
-        from: process.env.EMAIL_USERNAME,
+        from: process.env.EMAIL,
         to: to,
         subject: `Activation de votre compte : ${code}`,
         text: `Votre code d'activation est : ${code}. Il est valide pour 15 minutes.`,

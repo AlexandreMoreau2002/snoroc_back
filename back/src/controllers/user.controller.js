@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { sendEmail } = require("../../config/nodemailer.config");
 const { emailDataVerification } = require("../services/email/verifyEmail.service");
+const { emailDataforgotPassword } = require("../services/email/forgotPasswordEmail.service")
 
 const { phone } = require("phone");
 const User = require("../models/user.model");
@@ -450,7 +451,7 @@ exports.ForgotPassword = async (req, res) => {
     await user.save()
 
     // Envoyer un email avec le token
-    const emailData = emailDataVerification(email, resetToken)
+    const emailData = emailDataforgotPassword(email, resetToken)
     const emailResult = await sendEmail(emailData)
 
     if (!emailResult.success) {
