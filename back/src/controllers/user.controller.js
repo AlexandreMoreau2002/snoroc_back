@@ -56,15 +56,9 @@ exports.SignUp = async (req, res) => {
     // normalisation de userPhone
     const phoneData = phone(userPhone, { country: "FR" });
     if (phoneData.isValid) {
-      console.log(phoneData.phoneNumber);
     } else {
       console.log("Numéro de téléphone non valide");
     }
-
-    // Test avec différents formats
-    // console.log(phone("+33769666370", { country: "FR" })); // Format international
-    // console.log(phone("0769666370", { country: "FR" })); // Format national sans indicatif
-    // console.log("Test Invalid Phone:", phone("12345", { country: 'FR' }));
 
     // Vérification de l'unicité de l'email
     const isUserExist = await User.findOne({ where: { email: email } });
@@ -192,6 +186,7 @@ exports.Login = async (req, res) => {
     const accessToken = await generateJwt({
       firstname: user.firstname,
       email: user.email,
+      isAdmin: user.isAdmin
     });
 
     await user.update({ accessToken: accessToken });
@@ -360,6 +355,7 @@ exports.GetById = async (req, res) => {
         'civility',
         'newsletter',
         'isVerified',
+        'isAdmin',
         'createdAt',
         'updatedAt',
       ],
@@ -654,6 +650,49 @@ exports.UpdatePassword = async (req, res) => {
     return res.status(500).json({
       value: false,
       message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
+
+// Update user role
+exports.UpdateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { isAdmin } = req.body
+
+    if (typeof isAdmin !== 'boolean') {
+      return res.status(400).json({
+        error: true,
+        message: "Le champ 'isAdmin' doit être de type boolean.",
+      })
+    }
+
+    // Récupérer l'utilisateur à mettre à jour
+    const user = await User.findByPk(id)
+
+    if (!user) {
+      return res.status(404).json({
+        error: true,
+        message: 'Utilisateur introuvable.',
+      })
+    }
+
+    // Mise à jour du rôle
+    await user.update({ isAdmin })
+
+    return res.status(200).json({
+      error: false,
+      message: `Le rôle de l'utilisateur a été mis à jour avec succès.`,
+      data: {
+        id: user.id,
+        isAdmin: user.isAdmin,
+      },
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({
+      error: true,
+      message: 'Une erreur est survenue lors de la mise à jour du rôle.',
     })
   }
 }

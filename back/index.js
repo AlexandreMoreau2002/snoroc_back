@@ -1,5 +1,4 @@
 // back/index.js
-
 const port = 3030
 const express = require('express')
 const app = express()
@@ -29,25 +28,6 @@ app.use('/user', require('./src/routes/user.routes'));
 // // Contact routes
 // app.use('/contact', require('./src/routes/contact.routes'));
 
-function listRoutes(app) {
-  console.log('Liste des routes :');
-  app._router.stack.forEach((middleware) => {
-    if (middleware.route) {
-      // Route normale
-      console.log(`${Object.keys(middleware.route.methods).join(', ').toUpperCase()} ${middleware.route.path}`);
-    } else if (middleware.name === 'router') {
-      // Routes dans des routeurs imbriqués
-      middleware.handle.stack.forEach((handler) => {
-        if (handler.route) {
-          console.log(`${Object.keys(handler.route.methods).join(', ').toUpperCase()} ${handler.route.path}`);
-        }
-      });
-    }
-  });
-}
-
-// Appeler la fonction pour afficher les routes
-// listRoutes(app);
 
 // test de l'api
 app.get('/', (req, res) => res.send('Hello World'));

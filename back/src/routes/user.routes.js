@@ -1,7 +1,8 @@
 // back/src/routes/user.routes.js
-const express = require('express')
-const router = express.Router()
-const authenticate = require('../middlewares/authenticate.middlewares')
+const express = require('express');
+const router = express.Router();
+const auth = require('../middlewares/authenticate.middlewares');
+const { roleMiddleware } = require('../middlewares/role.middlewares');
 
 const {
   Login,
@@ -15,22 +16,33 @@ const {
   VerifyEmail,
   UpdateNewsletter,
   UpdatePassword,
+  UpdateUserRole
 } = require('../controllers/user.controller')
 
-router.post('/signup', SignUp)
-router.post('/login', Login)
-router.patch('/update', authenticate, Update)
-router.delete('/delete',authenticate,  Delete)
-router.get("/:id", authenticate,  GetById)
-router.get("/profile", authenticate, GetProfile)
-router.post("/forgot-password", ForgotPassword)
-router.post("/reset-password", ResetPassword)
-router.post('/verify-email', VerifyEmail)
-router.patch("/update-newsletter", UpdateNewsletter)
-router.patch('/update-password', authenticate, UpdatePassword)
+// Routes explicites
+router.get('/', () => console.log('hello depuis / tout cours'))
+router.get('/test', () => console.log('hello depuis /test'))
+router.get('/alors', (req, res) => res.send('Alors évidemment, me revoilà'));
 
-// Routes de test pour vérifier rapidement le fonctionnement de l'API
-router.get('/test', () => console.log('hello'))
-router.get('/alors', (req, res) => res.send('Alors évidemment, me revoilà'))
+// Routes publiques
+router.post('/login', Login);
+router.post('/signup', SignUp);
+router.post('/verify-email', VerifyEmail);
+router.post('/reset-password', ResetPassword);
+router.post('/forgot-password', ForgotPassword);
 
-module.exports = router
+// Routes protégées
+router.patch('/update', auth, Update);
+router.delete('/delete', auth, Delete);
+router.get('/profile', auth, GetProfile);
+router.patch('/update-password', auth, UpdatePassword);
+router.patch('/update-newsletter', auth, UpdateNewsletter);
+router.get('/id=:id', auth, roleMiddleware('admin'), GetById)
+router.get('/admin-only', auth, roleMiddleware('admin'), (req, res) => {
+  res.status(200).json({ message: 'Bienvenue Admin.' });
+});
+
+// Route pour mettre à jour le rôle d'un utilisateur
+router.patch('/update-role/:id', auth, roleMiddleware('admin'), UpdateUserRole);
+
+module.exports = router;
