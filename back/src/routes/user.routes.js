@@ -1,5 +1,4 @@
 // back/src/routes/user.routes.js
-
 const express = require('express')
 const router = express.Router()
 const authenticate = require('../middlewares/authenticate.middlewares')
@@ -27,7 +26,7 @@ router.get("/profile", authenticate, GetProfile)
 router.post("/forgot-password", ForgotPassword)
 router.post("/reset-password", ResetPassword)
 router.post('/verify-email', VerifyEmail)
-router.patch("/update-newsletter", authenticate, UpdateNewsletter)
+router.patch("/update-newsletter", UpdateNewsletter)
 router.patch('/update-password', authenticate, UpdatePassword)
 
 // Routes de test pour vérifier rapidement le fonctionnement de l'API

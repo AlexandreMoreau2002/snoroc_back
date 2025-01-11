@@ -2,32 +2,31 @@
 
 ## Front
 
-## Pages
+### Pages
 
-- Accueil
-  - Actualités
-    - Listing de toutes les actus
-    - Page de l'actualité
-  - Évènements
-    - Listing de tous les évènements récentes
-    - Listing de tous les évènements passés
-    - Page de l'évènement
-  - Médias
-    - Listing de tous les médias
-    - MediaPlayer du média
-  - à propos
-    - Contenu de la page à propos (information a propos du groupe)
-- Contact
+#### Actualités (Accueil)
+  - Listing de toutes les actus
+  - Page de l'actualité
+#### Évènements
+  - Listing de tous les évènements récentes
+  - Listing de tous les évènements passés
+  - Page de l'évènement
+#### Médias
+  - Listing de tous les médias
+  - MediaPlayer du média
+#### à propos
+  - Contenu de la page à propos (information a propos du groupe)
+#### Contact
   - Informations de contact
   - Formulaire de contact
     - (Nom, Prénom, Email, téléphone, sujet, Message)
-- Inscription
+#### Inscription
   - Formulaire d'inscription
     - (Nom, Prénom, Email, téléphone (facultatif), Civilité, Mot de passe et confirmation, inscription à la newsletter, captcha)
-- Connexion
+#### Connexion
   - Formulaire de connexion
     - (Email, Mot de passe, captcha (si 3 tentatives de connexion infructueuses))
-- Profil (si connecté)
+#### Profil (si connecté)
   - Informations personnelles (formulaire: Nom, Prénom, Email, téléphone (facultatif), Civilité (lecture seule))
   - Page modifier mot de passe
     - (Ancien mot de passe, Nouveau mot de passe, Confirmation du nouveau mot de passe)
@@ -51,16 +50,16 @@
 
 - Accueil - Actualités - Évènements - Médias - à propos - Contact - Profil - Modifier mot de passe - Panel Admin
 
-## Modules Front
+### Packages
 
 [Froala Editor](https://www.npmjs.com/package/froala-editor)
 [Sweet Pagination](https://www.npmjs.com/package/sweet-pagination)
 
 ## Back
 
-## Fonctionnalités
+### Fonctionnalités
 
-- Actualités :
+#### Actualités
   - Model :
     - id
     - title
@@ -94,7 +93,7 @@
         - Mise à jour d'une actualité
       - DELETE
         - Suppression d'une actualité
-- Évènements :
+#### Évènements
   - Model :
     - id
     - title
@@ -128,7 +127,7 @@
         - Mise à jour d'un évènement
       - DELETE
         - Suppression d'un évènement
-- Médias :
+#### Médias
   - Model :
     - Album
       - id
@@ -183,7 +182,7 @@
       - GET /media
       - GET /media/:id
       - DELETE /media/:id
-- Contact :
+#### Contact
   - Model :
     - id
     - name
@@ -211,7 +210,9 @@
     - GET /contact
     - GET /contact/:id
     - DELETE /contact/:id
-- User
+  - Services/email
+    - Contact email template
+#### User
   - Model :
     - id
     - email
@@ -290,6 +291,7 @@
       - Vérification du token d'authentification dans le header
       - Vérification de l'existence du token dans la base de données
       - Vérification de l'expiration du token
+    - Rôle
       - Vérification du rôle de l'utilisateur
   - Routes :
     - Signup
@@ -308,7 +310,11 @@
       - Envoi d'un email à l'adresse de contact
       - Envoi d'un email à l'adresse de l'utilisateur
   - Utils :
-    - Envoi d'email
-    - Hash password
-    - Génération de code à 6 chiffres & Génération de date d'expiration
+    - encrypt password
     - Génération de token JWT
+    - Génération de code à 6 chiffres & Génération de date d'expiration (validation.utils)
+
+### Packages
+
+[Nodemailer](https://www.nodemailer.com/)
+[JWT](https://jwt.io/)

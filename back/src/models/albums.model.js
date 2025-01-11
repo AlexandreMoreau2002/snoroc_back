@@ -1,17 +1,7 @@
-// id
-// title
-// description
-// thumbnail (image)
-// author (authorId)
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
 
 class Album extends Model { };
-
 Album.init({
     /** TABLE DE DONNÉES */
     
@@ -60,6 +50,3 @@ Album.init({
     modelName: 'Album' // Le nom du modèle créé ci-dessus
 });
 module.exports = Album;
-
-
-

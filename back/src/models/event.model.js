@@ -1,21 +1,10 @@
-// id
-// title
-// content (longtext)
-// thumbnail (image)
-// address
-// author (EventId)
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
 
 class Event extends Model { };
-
 Event.init({
     /** TABLE DE DONNÉES */
-
+    
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,

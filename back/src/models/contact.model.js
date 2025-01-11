@@ -1,19 +1,7 @@
-// id
-// name
-// email
-// phone
-// subject
-// message
-// hasBeenRead
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
 
 class Contact extends Model { };
-
 Contact.init({
     /** TABLE DE DONNÉES */
 

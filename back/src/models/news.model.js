@@ -1,17 +1,7 @@
-// id
-// title
-// content (longtext)
-// thumbnail (image)
-// author (NewsId)
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
 
 class News extends Model { };
-
 News.init({
     /** TABLE DE DONNÉES */
 

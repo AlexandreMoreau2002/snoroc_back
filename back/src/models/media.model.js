@@ -1,21 +1,10 @@
-// id
-// title
-// description
-// url (image ou vidéo)
-// albumId
-// author (authorId)
-// createdAt
-// updatedAt
-
 const { Model, DataTypes } = require("sequelize");
-
 const sequelize = require("../../config/database.config");
 
 class Media extends Model { };
-
 Media.init({
     /** TABLE DE DONNÉES */
-
+    
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -62,4 +51,3 @@ Media.init({
     modelName: 'Media' // Le nom du modèle créé ci-dessus
 });
 module.exports = Media;
-
