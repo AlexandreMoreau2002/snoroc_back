@@ -7,8 +7,6 @@ import { LegalNotice, TermsOfService} from './pages/visitor/export'
 
 import { Header, Footer} from './components/export'
 
-//pas encore operationnel : 
-// import ApiLink from './services/apiLink'
 
 export default function Router() {
   return (
