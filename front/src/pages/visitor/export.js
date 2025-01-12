@@ -1,3 +1,4 @@
+// front/src/pages/visitor/export.js
 import { Home, HomeGallery, HomeDisplay } from './Home/export'
 import { Event, EventGallery, EventDisplay } from './Event/export'
 import { Media, MediaGallery, MediaDisplay } from './Media/export'
