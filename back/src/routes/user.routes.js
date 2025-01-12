@@ -37,7 +37,7 @@ router.delete('/delete', auth, Delete);
 router.get('/profile', auth, GetProfile);
 router.patch('/update-password', auth, UpdatePassword);
 router.patch('/update-newsletter', auth, UpdateNewsletter);
-router.get('/id=:id', auth, roleMiddleware('admin'), GetById)
+router.get('/id=:id', auth, GetById)
 router.get('/admin-only', auth, roleMiddleware('admin'), (req, res) => {
   res.status(200).json({ message: 'Bienvenue Admin.' });
 });
