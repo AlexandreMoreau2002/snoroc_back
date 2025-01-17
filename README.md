@@ -11,6 +11,7 @@ Snoroc est une plateforme conçue pour présenter le groupe Snoroc, leurs albums
 - **Frontend** : HTML5, CSS3 (avec Framework Sass), JavaScript (avec React.js)
 - **Backend** : Node.js Express
 - **Base de Données** : MySql
+- **Environement** : Docker, Docker Compose
 
 ## Lancer le projet
 
