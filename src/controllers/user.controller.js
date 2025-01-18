@@ -184,6 +184,7 @@ exports.Login = async (req, res) => {
     }
 
     const accessToken = await generateJwt({
+      id: user.id,
       firstname: user.firstname,
       email: user.email,
       isAdmin: user.isAdmin
