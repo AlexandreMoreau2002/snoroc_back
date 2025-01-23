@@ -41,8 +41,10 @@ News.init({
           }
     
 }, {
-    DataTypes,
+    sequelize,
     tableName: 'news', // Le nom de la table dans la BDD
-    modelName: 'News' // Le nom du modèle créé ci-dessus
+    modelName: 'News', // Le nom du modèle créé ci-dessus
+    timestamps: true, // Active automatiquement createdAt et updatedAt
+
 });
 module.exports = News;

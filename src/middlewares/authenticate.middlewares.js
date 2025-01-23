@@ -1,4 +1,4 @@
-// back/src/middlewares/authenticate.middlewares.js
+// src/middlewares/authenticate.middlewares.js
 const jwt = require('jsonwebtoken')
 
 /**

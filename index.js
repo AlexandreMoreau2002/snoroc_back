@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/user', require('./src/routes/user.routes'));
 
 // // news route 
-// app.use('/news', require('./src/routes/news.routes'));
+app.use('/news', require('./src/routes/news.routes'));
 
 // // event route 
 // app.use('/event', require('./src/routes/event.routes'));
