@@ -1,22 +1,9 @@
-// Create
-// // Vérification des données (title, content, thumbnail, authentification via middleware) ✅
-// // Mise en ligne de l'image sur le serveur et récupération de l'url ✅
-// // Envoi d'une notification aux utilisateurs inscrits à la newsletter
-
-// Update
-// // Vérification des données (title, content, thumbnail, authentification via middleware)
-// // Mise à jour des champs uniquement rensignés sinon on garde les anciennes valeurs
-
-// Delete
-// // Vérification des données (id de l'actualité, authentification via middleware)
-
-// Get / GetById
-// // Vérification des données (id de l'actualité)
-
+const fs = require('fs')
+const path = require('path')
 const News = require('../models/news.model')
 const User = require('../models/user.model')
+const { sendEmail } = require('../../config/nodemailer.config')
 const { notifNewsletterNews } = require('../services/email/newNews.service')
-const nodemailer = require('nodemailer')
 
 exports.Create = async (req, res) => {
   try {
@@ -37,12 +24,10 @@ exports.Create = async (req, res) => {
       })
     }
 
-    // Générer l'URL publique de l'image
-    const thumbnailUrl = `${req.protocol}://${req.get('host')}/uploads/${
+    const thumbnailUrl = `${req.protocol}://${req.get('host')}uploads/${
       req.file.filename
     }`
 
-    // Sauvegarder dans la base de données
     const news = await News.create({
       authorId,
       title,
@@ -50,8 +35,8 @@ exports.Create = async (req, res) => {
       thumbnail: thumbnailUrl,
     })
 
-    // Récupérer tous les utilisateurs abonnés à la newsletter
     const users = await User.findAll({
+      attributes: ['email'],
       where: { newsletter: true },
     })
 
@@ -63,22 +48,17 @@ exports.Create = async (req, res) => {
       })
     }
 
-    // Configuration de Nodemailer
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    })
-
-    // Envoi de l'email à chaque utilisateur
     for (const user of users) {
-        console.log(user.email)
       const emailData = notifNewsletterNews(user.email, news.id)
 
       try {
-        await transporter.sendMail(emailData)
+        const emailResponse = await sendEmail(emailData)
+        if (!emailResponse.success) {
+          console.error(
+            `Erreur lors de l'envoi à ${user.email} :`,
+            emailResponse.error
+          )
+        }
       } catch (error) {
         console.error(`Erreur lors de l'envoi à ${user.email} :`, error)
       }
@@ -97,135 +77,182 @@ exports.Create = async (req, res) => {
   }
 }
 
-// exports.GetAll = async (req, res) => {
-//     try {
-//         const news = await News.findAll();
+exports.GetAll = async (req, res) => {
+  try {
+    const news = await News.findAll()
 
-//         return res.status(200).json({
-//             error: false,
-//             message: "Les actualités ont bien été récupérés",
-//             data: news
-//         })
-//     } catch (error) {
-//         console.log("error");
-//         return res.status(500).json({
-//             error: true,
-//             message: "Une erreur interne est survenue, veuillez réessayer plus tard."
-//         })
-//     }
-// }
+    return res.status(200).json({
+      error: false,
+      message: 'Les actualités ont bien été récupérés',
+      data: news,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
 
-// exports.GetById = async (req, res) => {
-//     try {
-//         const { id } = req.body;
+exports.GetById = async (req, res) => {
+  try {
+    const { id } = req.params
 
-//         if (!id || isNaN(id)) {
-//             return res.status(400).json({
-//                 error: true,
-//                 message: "Requête invalide."
-//             });
-//         }
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: true,
+        message: 'Requête invalide.',
+      })
+    }
 
-//         const news = await News.findOne({ where: { id: id } });
+    const news = await News.findOne({ where: { id: id } })
 
-//         if (!news) {
-//             return res.status(404).json({
-//                 error: true,
-//                 message: "L'actualité est introuvable."
-//             });
-//         }
+    if (!news) {
+      return res.status(404).json({
+        error: true,
+        message: "L'actualité est introuvable.",
+      })
+    }
 
-//         return res.status(200).json({
-//             error: false,
-//             message: "L'actualité a été récupérée.",
-//             data: news
-//         });
-//     } catch (error) {
-//         console.log("error");
-//         return res.status(500).json({
-//             error: true,
-//             message: "Une erreur interne est survenue, veuillez réessayer plus tard."
-//         })
-//     }
-// }
+    return res.status(200).json({
+      error: false,
+      message: "L'actualité a été récupérée.",
+      data: news,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
+  }
+}
 
-// exports.Update = async (req, res) => {
-//     try {
-//         const { id, title, description, content } = req.body;
-//         const picture = req.file;
-//         console.log(req.body, req.file)
+exports.Update = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { title, content } = req.body
 
-//         if (!id || isNaN(id)) {
-//             return res.status(400).json({
-//                 error: true,
-//                 message: "Requête invalide."
-//             });
-//         }
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        error: true,
+        message: 'Utilisateur non authentifié.',
+      })
+    }
 
-//         const news = await News.findOne({ where: { id: id } });
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: true,
+        message: "Requête invalide. L'ID doit être un entier valide.",
+      })
+    }
 
-//         if (!news) {
-//             return res.status(404).json({
-//                 error: true,
-//                 message: "L'article est introuvable."
-//             });
-//         }
+    const news = await News.findOne({ where: { id: parseInt(id, 10) } })
 
-//         const newsData = {
-//             title: title || news.title,
-//             description: description || news.description,
-//             content: content || news.content,
-//             thumbnail: picture?.filename || news.thumbnail
-//         }
+    if (!news) {
+      return res.status(404).json({
+        error: true,
+        message: "L'actualité est introuvable.",
+      })
+    }
 
-//         await news.update(newsData);
+    let newThumbnail = news.thumbnail
 
-//         return res.status(200).json({
-//             error: false,
-//             message: "L'article a bien été mis à jour."
-//         });
+    if (req.file) {
+      const oldThumbnailPath = path.join(
+        __dirname,
+        '../../public/uploads',
+        path.basename(news.thumbnail)
+      )
 
-//     } catch (error) {
-//         console.log("error");
-//         return res.status(500).json({
-//             error: true,
-//             message: "Une erreur interne est survenue, veuillez réessayer plus tard."
-//         })
-//     }
-// }
+      if (fs.existsSync(oldThumbnailPath)) {
+        try {
+          fs.unlinkSync(oldThumbnailPath)
+        } catch (err) {
+          console.error(
+            "Erreur lors de la suppression de l'ancienne image :",
+            err
+          )
+        }
+      } else {
+        console.log('Aucune ancienne image trouvée.')
+      }
 
-// exports.Delete = async (req, res) => {
-//     try {
-//         const { id } = req.body;
+      newThumbnail = `${req.protocol}://${req.get('host')}/uploads/${
+        req.file.filename
+      }`
+    }
 
-//         if (!id || isNaN(id)) {
-//             return res.status(400).json({
-//                 error: true,
-//                 message: "Requête invalide."
-//             });
-//         }
+    const updatedNews = await news.update({
+      title: title || news.title,
+      content: content || news.content,
+      thumbnail: newThumbnail,
+      updatedAt: new Date(),
+    })
 
-//         const news = await News.findOne({ where: { id: id } });
+    return res.status(200).json({
+      error: false,
+      message: 'Actualité mise à jour avec succès.',
+      data: updatedNews,
+    })
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de l'actualité :", error)
+    return res.status(500).json({
+      error: true,
+      message: 'Une erreur interne est survenue.',
+    })
+  }
+}
 
-//         if (!news) {
-//             return res.status(404).json({
-//                 error: true,
-//                 message: "L'actualité est introuvable."
-//             });
-//         }
+exports.Delete = async (req, res) => {
+  try {
+    const { id } = req.params
 
-//         await news.destroy();
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: true,
+        message: "Requête invalide : ID de l'actualité manquant ou incorrect.",
+      })
+    }
 
-//         return res.status(201).json({
-//             error: false,
-//             message: "L'actualité a bien été supprimée."
-//         });
+    const news = await News.findOne({ where: { id: parseInt(id, 10) } })
 
-//     } catch (error) {
-//         console.log("error");
-//         return res.status(500).json({
-//             error: true,
-//             message: "Une erreur interne est survenue, veuillez réessayer plus tard."
-//         })
-//     }
-// }
+    if (!news) {
+      return res.status(404).json({
+        error: true,
+        message: 'Actualité introuvable.',
+      })
+    }
+
+    if (news.thumbnail) {
+
+      const thumbnailPath = path.join(
+        __dirname,
+        '../../public/uploads',
+        path.basename(news.thumbnail)
+      )
+
+      if (fs.existsSync(thumbnailPath)) {
+        try {
+          fs.unlinkSync(thumbnailPath)
+        } catch (error) {
+          console.error("Erreur lors de la suppression de l'image :", error)
+        }
+      } else {
+        console.log("Le fichier à supprimer n'existe pas.")
+      }
+    }
+
+    await news.destroy()
+
+    return res.status(200).json({
+      error: false,
+      message: "L'actualité a été supprimée avec succès.",
+    })
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'actualité :", error)
+    return res.status(500).json({
+      error: true,
+      message: 'Une erreur interne est survenue.',
+    })
+  }
+}

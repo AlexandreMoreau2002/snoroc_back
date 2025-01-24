@@ -9,7 +9,7 @@
 
 const notifNewsletterNews = (to, id) => {
   const baseUrl = process.env.BASE_URL || 'https://snoroc.com'
-  const newsUrl = `${baseUrl}/news/${id}`
+  const newsUrl = `${baseUrl}/news/id/${id}`
 
   return {
     from: process.env.EMAIL,
@@ -17,8 +17,8 @@ const notifNewsletterNews = (to, id) => {
     subject: `Nouvelle actu sur Snoroc`,
     text: `Une nouvelle actu a été publiée. Consultez-la ici : ${newsUrl}`,
     html: `
-      <p>Une nouvelle actu a été publiée sur le site Snoroc.</p>
-      <p><a href="${newsUrl}" target="_blank">Cliquez ici pour lire l'article</a></p>
+      <p>Une nouvelle actu a été publiée.</p>
+      <p><a href="${newsUrl}" target="_blank">Cliquez ici</a> pour voir sur le site</p>
     `,
   }
 }

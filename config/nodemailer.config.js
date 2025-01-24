@@ -1,4 +1,5 @@
-const nodemailer = require("nodemailer");
+// config/nodemailer.config.js
+const nodemailer = require('nodemailer')
 
 /**
  * Asynchronously sends an email using predefined SMTP settings.
@@ -13,34 +14,30 @@ const nodemailer = require("nodemailer");
  */
 
 async function sendEmail({ from, to, subject, text, html }) {
-  // Create a transporter object using the default SMTP transport
   const transporter = nodemailer.createTransport({
-    service: "gmail", // SMTP service provider
+    service: 'gmail',
     auth: {
-      user: process.env.EMAIL, // SMTP username from environment variables
-      pass: process.env.EMAIL_PASSWORD, // SMTP password from environment variables
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
     },
-  });
+  })
 
-  // Setup email data (envelope)
   const mailOptions = {
     from,
     to,
     subject,
     text,
     html,
-  };
+  }
 
   try {
-    // Attempt to send the email and log the response
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent: " + info.response);
-    return { success: true, message: "Email sent", info: info };
+    const info = await transporter.sendMail(mailOptions)
+    console.log('Email sent: ' + info.response)
+    return { success: true, message: 'Email sent', info: info }
   } catch (error) {
-    // Log any errors that occur
-    console.error("Error sending email: ", error);
-    return { success: false, message: "Failed to send email", error: error };
+    console.error('Error sending email: ', error)
+    return { success: false, message: 'Failed to send email', error: error }
   }
 }
 
-module.exports = { sendEmail };
+module.exports = { sendEmail }

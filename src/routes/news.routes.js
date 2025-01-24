@@ -12,10 +12,15 @@ const {
   GetById,
 } = require('../controllers/news.controller')
 
-// Récupération de toutes les actualités
-// router.get('/', GetAll);
+// Routes test
+router.get('/', () => console.log('hello depuis / tout cours'))
+router.get('/alors', (req, res) => res.send('Alors évidemment, me revoilà'))
 
-// Création d'une actualité
+// Routes publiques
+router.get('/getall', GetAll)
+router.get('/id/:id', GetById)
+
+// Routes protégées
 router.post(
   '/create',
   auth,
@@ -23,17 +28,13 @@ router.post(
   upload.single('thumbnail'),
   Create
 )
-
-// Récupération d'une actualité par son ID
-// router.get('/news=:id', GetById);
-
-// Mise à jour d'une actualité
-// router.patch('/update/news=:id', Update);
-
-// Suppression d'une actualité
-// router.delete('/delete/news=:id', Delete);
-
-router.get('/', () => console.log('hello depuis / tout cours'))
-router.get('/alors', (req, res) => res.send('Alors évidemment, me revoilà'))
+router.patch(
+  '/update/:id',
+  auth,
+  roleMiddleware('admin'),
+  upload.single('thumbnail'),
+  Update
+)
+router.delete('/delete/:id', auth, roleMiddleware('admin'), Delete)
 
 module.exports = router

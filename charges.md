@@ -78,7 +78,7 @@
       - Mise à jour des champs uniquement rensignés sinon on garde les anciennes valeurs
     - Delete
       - Vérification des données (id de l'actualité, authentification via middleware)
-    - Get / GetById
+    - GetAll / GetById
       - Vérification des données (id de l'actualité)
   - Routes :
     - /news
