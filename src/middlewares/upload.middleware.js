@@ -16,7 +16,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg']
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Seuls les fichiers JPEG et PNG sont autorisés.'))
+      return cb(new Error('Seuls les fichiers JPEG, JPG et PNG sont autorisés.'))
     }
     cb(null, true)
   },

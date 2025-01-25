@@ -24,7 +24,7 @@ exports.Create = async (req, res) => {
       })
     }
 
-    const thumbnailUrl = `${req.protocol}://${req.get('host')}uploads/${
+    const thumbnailUrl = `${req.protocol}://${req.get('host')}/uploads/${
       req.file.filename
     }`
 
