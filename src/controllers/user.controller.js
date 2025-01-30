@@ -3,18 +3,18 @@ const { sendEmail } = require("../../config/nodemailer.config");
 const { emailDataVerification } = require("../services/email/verifyEmail.service");
 const { emailDataforgotPassword } = require("../services/email/forgotPasswordEmail.service")
 
-const { phone } = require("phone");
-const User = require("../models/user.model");
+const { phone } = require('phone')
+const User = require('../models/user.model')
 const {
   encryptPassword,
   comparePassword,
-} = require("../utils/encryptPassword.utils");
-const { generateJwt } = require("../utils/generateJwt.utils");
+} = require('../utils/encryptPassword.utils')
+const { generateJwt } = require('../utils/generateJwt.utils')
 
 const {
   generateVerificationCode,
   generateExpirationDate,
-} = require("../utils/validation.utils");
+} = require('../utils/validation.utils')
 
 exports.SignUp = async (req, res) => {
   try {
@@ -26,56 +26,58 @@ exports.SignUp = async (req, res) => {
       userPhone,
       civility,
       newsletter,
-    } = req.body;
+    } = req.body
     if (!firstname || !lastname || !email || !password || !civility) {
       return res.status(400).json({
         value: false,
         message:
-          "La requête est invalide, Tous les champs doivent être remplis.",
-      });
+          'La requête est invalide, Tous les champs doivent être remplis.',
+      })
     }
 
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
     if (!emailRegex.test(email)) {
       // Si le format de l’adresse mail est incorrecte, on renvoi une erreur à l’utilisateur
       return res.status(400).json({
         value: false,
         message: "L'email n’est pas dans le bon format.",
-      });
+      })
     }
 
-    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
         value: false,
         message:
-          "Le mot de passe doit contenir au moins 8 caractères, dont au moins une majuscule, une minuscule et un chiffre.",
-      });
+          'Le mot de passe doit contenir au moins 8 caractères, dont au moins une majuscule, une minuscule et un chiffre.',
+      })
     }
 
     // normalisation de userPhone
-    const phoneData = phone(userPhone, { country: "FR" });
+    const phoneData = phone(userPhone, { country: 'FR' })
     if (phoneData.isValid) {
     } else {
-      console.log("Numéro de téléphone non valide");
+      console.log('Numéro de téléphone non valide')
     }
 
     // Vérification de l'unicité de l'email
-    const isUserExist = await User.findOne({ where: { email: email } });
+    const isUserExist = await User.findOne({ where: { email: email } })
     if (isUserExist) {
       return res
         .status(400)
-        .send({ message: "Un utilisateur avec cet email existe déjà." });
+        .send({ message: 'Un utilisateur avec cet email existe déjà.' })
     }
 
     // Securité
-    const encryptedPassword = await encryptPassword(password);
-    const VerificationCode = generateVerificationCode();
+    const encryptedPassword = await encryptPassword(password)
+    const VerificationCode = generateVerificationCode()
 
-    const emailData = emailDataVerification(email, VerificationCode);
-    const emailResult = await sendEmail(emailData);
+    const emailData = emailDataVerification(email, VerificationCode)
+    const emailResult = await sendEmail(emailData)
     if (!emailResult.success) {
-      return res.status(500).json({value: false, message: emailResult.message });
+      return res
+        .status(500)
+        .json({ value: false, message: emailResult.message })
     }
 
     // Donnée a envoyer a la db
@@ -89,35 +91,35 @@ exports.SignUp = async (req, res) => {
       newsletter: newsletter,
       emailVerificationToken: VerificationCode,
       emailVerificationTokenExpires: generateExpirationDate(15),
-    };
+    }
 
     // envoi des données a la bdd
-    await new User(userData).save();
+    await new User(userData).save()
     // La ligne ci-dessus permet de créer une nouvelle instance d’utilisateur grâce à notre modèle et le
     // .save() permet de l'enregistrer dans la base de données.
     return res.status(200).json({
       error: false,
-      message: "Votre compte a bien été créé.",
-    });
+      message: 'Votre compte a bien été créé.',
+    })
   } catch (err) {
-    console.log(err);
+    console.log(err)
     return res.status(500).json({
       value: false,
       message: `Une erreur est survenue : ${err.message}.`,
-    });
+    })
   }
-};
+}
 
 exports.VerifyEmail = async (req, res) => {
-  const { email, emailVerificationToken } = req.body;
+  const { email, emailVerificationToken } = req.body
   try {
     const user = await User.findOne({
       where: {
         email: email,
       },
-    });
+    })
     if (!user) {
-      throw new Error("Utilisateur introuvable");
+      throw new Error('Utilisateur introuvable')
     }
 
     if (
@@ -125,13 +127,13 @@ exports.VerifyEmail = async (req, res) => {
       new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString() >
         user.emailVerificationTokenExpires.toISOString()
     ) {
-      throw new Error("Token invalide ou expiré.");
+      throw new Error('Token invalide ou expiré.')
     }
 
     // Verification du tokken
-    const code = user.emailVerificationToken;
+    const code = user.emailVerificationToken
     if (code !== emailVerificationToken) {
-      throw new Error("Le code fourni est incorrect.");
+      throw new Error('Le code fourni est incorrect.')
     }
 
     // Mise à jour de l'utilisateur comme vérifié et suppression du token
@@ -139,70 +141,81 @@ exports.VerifyEmail = async (req, res) => {
       isVerified: true,
       emailVerificationToken: null,
       emailVerificationTokenExpires: null,
-    });
+    })
     return res.status(200).json({
       error: false,
-      message: "Email validé.",
-    });
+      message: 'Email validé.',
+    })
   } catch (err) {
     return res.status(500).json({
       value: false,
       message: `Une erreur est survenue : ${err}.`,
-    });
+    })
   }
-};
+}
 
-// fonction de control des connections des utilisateurs
 exports.Login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ value: false, message: "La requête est invalide." });
+      return res.status(400).json({
+        value: false,
+        message: 'La requête est invalide.',
+      })
     }
 
-    let user;
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    if (emailRegex.test(email)) {
-      user = await User.findOne({ where: { email: email } });
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        value: false,
+        message: "Format d'email invalide.",
+      })
     }
 
+    const user = await User.findOne({ where: { email } })
     if (!user) {
       return res.status(401).json({
         value: false,
         message: "L'identifiant et/ou le mot de passe est incorrect.",
-      });
+      })
     }
 
-    const isPasswordValid = await comparePassword(password, user.password);
+    const isPasswordValid = await comparePassword(password, user.password)
     if (!isPasswordValid) {
       return res.status(401).json({
         value: false,
         message: "L'identifiant et/ou le mot de passe est incorrect.",
-      });
+      })
     }
 
     const accessToken = await generateJwt({
       id: user.id,
       firstname: user.firstname,
       email: user.email,
-      isAdmin: user.isAdmin
-    });
+      isAdmin: user.isAdmin,
+    })
 
-    await user.update({ accessToken: accessToken });
+    await user.update({ accessToken })
+
     return res.status(200).json({
-      error: false,
-      message: "Vous êtes désormais connecté.",
-      accessToken: accessToken,
-    });
+      message: 'Vous êtes désormais connecté.',
+      accessToken,
+      user: {
+        id: user.id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    })
   } catch (err) {
+    console.error('Erreur lors de la connexion :', err)
     return res.status(500).json({
       value: false,
-      message: `Une erreur est survenue : ${err}.`,
-    });
+      message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+    })
   }
-};
+}
 
 // fonction pour l'update de données utilisateurs
 exports.Update = async (req, res) => {
