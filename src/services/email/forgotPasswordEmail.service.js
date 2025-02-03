@@ -8,7 +8,7 @@
  */
 
 const emailDataforgotPassword = (to, resetToken) => {
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+  const resetLink = `${process.env.FRONTEND_URL}/ForgotPassword?token=${resetToken}`
 
   return {
     from: process.env.EMAIL,
