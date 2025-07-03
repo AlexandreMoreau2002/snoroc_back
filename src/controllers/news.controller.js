@@ -44,7 +44,7 @@ exports.Create = async (req, res) => {
       return res.status(201).json({
         error: false,
         message:
-          'Actualité créée avec succès, mais aucun utilisateur abonné à la newsletter.',
+          'Actualité créée avec succès',
       })
     }
 

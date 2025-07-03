@@ -1,7 +1,11 @@
-require("dotenv").config();
-const { sendEmail } = require("../../config/nodemailer.config");
-const { emailDataVerification } = require("../services/email/verifyEmail.service");
-const { emailDataforgotPassword } = require("../services/email/forgotPasswordEmail.service")
+require('dotenv').config()
+const { sendEmail } = require('../../config/nodemailer.config')
+const {
+  emailDataVerification,
+} = require('../services/email/verifyEmail.service')
+const {
+  emailDataforgotPassword,
+} = require('../services/email/forgotPasswordEmail.service')
 
 const { phone } = require('phone')
 const User = require('../models/user.model')
@@ -127,7 +131,7 @@ exports.VerifyEmail = async (req, res) => {
       new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString() >
         user.emailVerificationTokenExpires.toISOString()
     ) {
-      throw new Error('Token invalide ou expiré.')
+      throw new Error('Code invalide ou expiré.')
     }
 
     // Verification du tokken
@@ -149,7 +153,7 @@ exports.VerifyEmail = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       value: false,
-      message: `Une erreur est survenue : ${err}.`,
+      message: `${err.message}.`,
     })
   }
 }
