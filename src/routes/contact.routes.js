@@ -3,18 +3,18 @@ const router = express.Router();
 const {Create, Update, GetAll, GetById, DeleteById } = require('../controllers/contact.controller');
 
 // Création d'un contact
-router.post('/', Create);
+router.post('/create', Create);
 
 // Mise à jour d'un contact par son ID
-router.patch('/:id', Update);
+// router.patch('/update/:id', Update);
 
 // Récupération de tous les contacts
-router.get('/', GetAll);
+// router.get('/', GetAll);
 
 // Récupération d'un contact par son ID
-router.get('/:id', GetById);
+// router.get('/:id', GetById);
 
 // Suppression d'un contact par son ID
-router.delete('/:id', DeleteById);
+// router.delete('/delete/:id', DeleteById);
 
 module.exports = router;

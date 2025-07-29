@@ -28,7 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
 // app.use('/media', require('./src/routes/media.routes'));
 
 // // Contact routes
-// app.use('/contact', require('./src/routes/contact.routes'));
+app.use('/contact', require('./src/routes/contact.routes'));
 
 // test de l'api
 app.get('/', (req, res) => res.send('Hello World'))
