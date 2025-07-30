@@ -98,12 +98,33 @@ exports.SignUp = async (req, res) => {
     }
 
     // envoi des données a la bdd
-    await new User(userData).save()
-    // La ligne ci-dessus permet de créer une nouvelle instance d’utilisateur grâce à notre modèle et le
+    const newUser = await new User(userData).save()
+    // La ligne ci-dessus permet de créer une nouvelle instance d'utilisateur grâce à notre modèle et le
     // .save() permet de l'enregistrer dans la base de données.
+
+    // Génération du token JWT pour connecter automatiquement l'utilisateur
+    const accessToken = await generateJwt({
+      id: newUser.id,
+      firstname: newUser.firstname,
+      email: newUser.email,
+      isAdmin: newUser.isAdmin,
+    })
+
+    // Mise à jour de l'utilisateur avec le token
+    await newUser.update({ accessToken })
+
     return res.status(200).json({
       error: false,
       message: 'Votre compte a bien été créé.',
+      accessToken,
+      user: {
+        id: newUser.id,
+        firstname: newUser.firstname,
+        lastname: newUser.lastname,
+        email: newUser.email,
+        isAdmin: newUser.isAdmin,
+        emailVerified: false, // L'email n'est pas encore vérifié
+      },
     })
   } catch (err) {
     console.log(err)
@@ -140,15 +161,34 @@ exports.VerifyEmail = async (req, res) => {
       throw new Error('Le code fourni est incorrect.')
     }
 
+    // Génération du token JWT pour connecter automatiquement l'utilisateur
+    const accessToken = await generateJwt({
+      id: user.id,
+      firstname: user.firstname,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    })
+
     // Mise à jour de l'utilisateur comme vérifié et suppression du token
     await user.update({
       isVerified: true,
       emailVerificationToken: null,
       emailVerificationTokenExpires: null,
+      accessToken: accessToken,
     })
+    
     return res.status(200).json({
       error: false,
       message: 'Email validé.',
+      accessToken,
+      user: {
+        id: user.id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        emailVerified: true,
+      },
     })
   } catch (err) {
     return res.status(500).json({
@@ -201,6 +241,9 @@ exports.Login = async (req, res) => {
 
     await user.update({ accessToken })
 
+    // Vérifier si l'email est vérifié
+    const emailVerified = user.emailVerificationToken === null
+
     return res.status(200).json({
       message: 'Vous êtes désormais connecté.',
       accessToken,
@@ -210,6 +253,7 @@ exports.Login = async (req, res) => {
         lastname: user.lastname,
         email: user.email,
         isAdmin: user.isAdmin,
+        emailVerified: emailVerified,
       },
     })
   } catch (err) {
