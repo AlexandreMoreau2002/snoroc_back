@@ -76,6 +76,14 @@ exports.SignUp = async (req, res) => {
     const encryptedPassword = await encryptPassword(password)
     const VerificationCode = generateVerificationCode()
 
+    const emailData = emailDataVerification(email, VerificationCode)
+    const emailResult = await sendEmail(emailData)
+    if (!emailResult.success) {
+      return res
+        .status(500)
+        .json({ value: false, message: emailResult.message })
+    }
+
     // Donnée a envoyer a la db
     const userData = {
       firstname: firstname,
@@ -90,42 +98,12 @@ exports.SignUp = async (req, res) => {
     }
 
     // envoi des données a la bdd
-    const newUser = await new User(userData).save()
-    // La ligne ci-dessus permet de créer une nouvelle instance d'utilisateur grâce à notre modèle et le
+    await new User(userData).save()
+    // La ligne ci-dessus permet de créer une nouvelle instance d’utilisateur grâce à notre modèle et le
     // .save() permet de l'enregistrer dans la base de données.
-
-    // Génération du token JWT pour la connexion automatique
-    const accessToken = await generateJwt({
-      id: newUser.id,
-      firstname: newUser.firstname,
-      email: newUser.email,
-      isAdmin: newUser.isAdmin,
-    })
-
-    // Mise à jour du token dans la base de données
-    await newUser.update({ accessToken })
-
-    // Tentative d'envoi de l'email de vérification (non-bloquant)
-    try {
-      const emailData = emailDataVerification(email, VerificationCode)
-      await sendEmail(emailData)
-      console.log('Email de vérification envoyé avec succès')
-    } catch (emailError) {
-      console.error('Erreur lors de l\'envoi de l\'email de vérification:', emailError.message)
-      // L'erreur d'email n'empêche pas la création du compte
-    }
-
     return res.status(200).json({
       error: false,
-      message: 'Votre compte a bien été créé. Vous êtes maintenant connecté.',
-      accessToken,
-      user: {
-        id: newUser.id,
-        firstname: newUser.firstname,
-        lastname: newUser.lastname,
-        email: newUser.email,
-        isAdmin: newUser.isAdmin,
-      },
+      message: 'Votre compte a bien été créé.',
     })
   } catch (err) {
     console.log(err)
