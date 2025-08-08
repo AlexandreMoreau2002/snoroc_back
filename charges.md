@@ -78,7 +78,7 @@
       - Mise à jour des champs uniquement rensignés sinon on garde les anciennes valeurs
     - Delete
       - Vérification des données (id de l'actualité, authentification via middleware)
-    - Get / GetById
+    - GetAll / GetById
       - Vérification des données (id de l'actualité)
   - Routes :
     - /news
@@ -286,6 +286,9 @@
       - Vérification des données (id de l'utilisateur, password, authentification via middleware (user))
       - Vérification du mot de passe (8 caractères minimum, 1 majuscule, 1 minuscule, 1 chiffre)
       - Mise à jour du champ password
+    - UpdateUserRole
+      - Vérification des données (id de l'utilisateur, authentification via middleware (Admin))
+      - Mise à jour du role d'un utilisateur
   - Middleware :
     - Authentification
       - Vérification du token d'authentification dans le header
@@ -305,6 +308,7 @@
     - Login
     - UpdateNewsletter
     - UpdatePassword
+    - UpdateUserRole
   - Services :
     - Email
       - Envoi d'un email à l'adresse de contact
