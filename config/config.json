@@ -1,5 +1,5 @@
 {
-  "development": {
+  "dev": {
     "username": "snoroc",
     "password": "1234",
     "database": "snoroc",
