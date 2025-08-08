@@ -1,5 +1,11 @@
 // back/index.js
-const port = 3030
+const NODE_ENV = process.env.NODE_ENV || 'development'
+if (NODE_ENV !== 'production') {
+  // Load local env vars in development
+  require('dotenv').config()
+}
+
+const port = process.env.PORT || 3030
 const express = require('express')
 const app = express()
 const path = require('path')
@@ -36,8 +42,8 @@ app.get('/', (req, res) => res.send('Hello World'))
 app.listen(port, async () => {
   try {
     await sequelize.authenticate()
-    console.log('Connection établi avec succès.')
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`[${NODE_ENV}] Connexion DB établie avec succès.`)
+    console.log(`Server listening on port ${port}`)
   } catch (error) {
     console.error('impossible de se connecter a la bdd:', error)
   }
