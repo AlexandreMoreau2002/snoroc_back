@@ -245,6 +245,7 @@ exports.Login = async (req, res) => {
     const emailVerified = user.emailVerificationToken === null
 
     return res.status(200).json({
+      error: false,
       message: 'Vous êtes désormais connecté.',
       accessToken,
       user: {
