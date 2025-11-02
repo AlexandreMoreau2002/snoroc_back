@@ -13,11 +13,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Stage backend sources
+        run: |
+          set -euxo pipefail
+          rm -rf dist
+          mkdir -p dist/workspace
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.DS_Store' \
+            --exclude='dist' \
+            ./ dist/workspace/
+          ls -la dist/workspace | head
+          du -sh dist/workspace || true
+
+      - name: Create archive
+        run: |
+          set -euxo pipefail
+          tar -czf snoroc_back.tar.gz -C dist/workspace .
+          ls -lh snoroc_back.tar.gz
+          tar -tzf snoroc_back.tar.gz | head
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: snoroc_back
-          path: .
+          path: snoroc_back.tar.gz
           if-no-files-found: error
 
   deploy:
@@ -29,27 +51,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: snoroc_back
-          path: ./snoroc_back
+          path: .
 
-      - name: Test SSH connection
-        run: |
-          echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
-          chmod 600 /tmp/github_key
-          echo "🔍 Testing SSH connection..."
-          ssh -i /tmp/github_key -o StrictHostKeyChecking=no -o LogLevel=ERROR ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo OK"
-          echo "✅ SSH connection successful"
-
-      - name: Transfer project to VPS
-        run: |
-          echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
-          chmod 600 /tmp/github_key
-          echo "📡 Transferring files to VPS..."
-          rsync -az --delete \
-            -e "ssh -i /tmp/github_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR" \
-            --exclude='.env' --exclude='.git' --exclude='node_modules' \
-            ./snoroc_back/ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
-          echo "✅ Transfer complete"
+      - name: Copy archive to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "snoroc_back.tar.gz"
+          target: "/tmp"
 
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
@@ -58,9 +69,21 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -eux
+            set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
             cd /srv/snoroc-dev
+            mkdir -p snoroc_back
+            tmp_env=""
+            if [ -f snoroc_back/.env ]; then
+              tmp_env=$(mktemp)
+              cp snoroc_back/.env "$tmp_env"
+            fi
+            find snoroc_back -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
+            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back
+            if [ -n "${tmp_env:-}" ] && [ -f "$tmp_env" ]; then
+              mv "$tmp_env" snoroc_back/.env
+            fi
+            rm -f /tmp/snoroc_back.tar.gz
             sudo docker compose up -d --build api
             echo "✅ Backend deployed and restarted successfully"
 
