@@ -15,12 +15,21 @@ jobs:
 
       - name: Package backend sources
         run: |
-          rm -f snoroc_back.tar.gz
-          tar -czf snoroc_back.tar.gz -C snoroc_back . \
+          cd ${{ github.workspace }}
+          echo "Current dir: $(pwd)"
+          ls -la
+          if [ -d "snoroc_back" ]; then
+            echo "Packaging snoroc_back/"
+            tar -czf snoroc_back.tar.gz \
               --exclude='.git' \
               --exclude='node_modules' \
               --exclude='.env' \
-              --exclude='.DS_Store'
+              --exclude='.DS_Store' \
+              -C snoroc_back .
+          else
+            echo "❌ Directory snoroc_back not found"
+            exit 1
+          fi
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
