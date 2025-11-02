@@ -29,7 +29,9 @@ jobs:
           du -sh dist || true
           tar -czf snoroc_back.tar.gz -C dist .
           ls -lh snoroc_back.tar.gz
-          tar -tzf snoroc_back.tar.gz | head
+          tar -tzf snoroc_back.tar.gz > tar_listing.txt
+          head tar_listing.txt
+          rm tar_listing.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
