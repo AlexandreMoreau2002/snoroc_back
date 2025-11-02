@@ -1,4 +1,4 @@
-name: Deploy Dev to VPS
+name: Build and Deploy Dev to VPS
 
 on:
   push:
@@ -6,25 +6,44 @@ on:
       - develop
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build backend
     runs-on: ubuntu-latest
-
+    outputs:
+      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Package backend sources
+        id: package
         run: |
           cd ${{ github.workspace }}
-          echo "Current dir: $(pwd)"
-          ls -la
-          echo "Packaging current repo (snoroc_back root)..."
+          echo "Packaging backend..."
           tar -czf snoroc_back.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
             . || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snoroc_back
+          path: snoroc_back.tar.gz
+
+  deploy:
+    name: Deploy to VPS
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: snoroc_back
+          path: .
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -35,7 +54,7 @@ jobs:
           source: 'snoroc_back.tar.gz'
           target: '/tmp'
 
-      - name: Deploy and restart backend on VPS
+      - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -45,10 +64,8 @@ jobs:
             set -euo pipefail
             cd /srv/snoroc-dev
             rm -rf snoroc_back_release
-            mkdir -p snoroc_back_release
-            mkdir -p snoroc_back
+            mkdir -p snoroc_back_release snoroc_back
             tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release --strip-components=1
             rsync -a --delete --exclude='.env' snoroc_back_release/ snoroc_back/
-            rm -rf snoroc_back_release
-            rm -f /tmp/snoroc_back.tar.gz
+            rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
             sudo docker compose up -d --build api
