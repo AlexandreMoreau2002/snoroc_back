@@ -6,23 +6,20 @@ on:
       - develop
 
 jobs:
-  build:
-    name: Build backend
+  package:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Package backend sources
+      - name: Create backend archive
         run: |
-          echo "Packaging backend at repo root..."
           tar -czf snoroc_back.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
-            . || true
+            -C snoroc_back .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -31,10 +28,8 @@ jobs:
           path: snoroc_back.tar.gz
 
   deploy:
-    name: Deploy to VPS
-    needs: build
     runs-on: ubuntu-latest
-
+    needs: package
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -42,32 +37,27 @@ jobs:
           name: snoroc_back
           path: .
 
-      - name: Test SSH connection
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Copy archive to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            echo "✅ SSH OK on $(hostname)"
+          source: "snoroc_back.tar.gz"
+          target: "/tmp"
 
-      - name: Upload archive and deploy manually
+      - name: Deploy backend on VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e
-            echo "📦 Transferring archive to /tmp..."
-            echo "${{ secrets.SSH_KEY }}" > /tmp/github_key && chmod 600 /tmp/github_key
-            scp -i /tmp/github_key -o StrictHostKeyChecking=no snoroc_back.tar.gz ubuntu@${{ secrets.SSH_HOST }}:/tmp/snoroc_back.tar.gz
-            echo "🧩 Deploying new version..."
+            set -euo pipefail
             cd /srv/snoroc-dev
             rm -rf snoroc_back_release
             mkdir -p snoroc_back_release snoroc_back
-            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release --strip-components=1
+            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release
             rsync -a --delete --exclude='.env' snoroc_back_release/ snoroc_back/
             rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
             sudo docker compose up -d --build api
-            echo "✅ Deployment complete!"
