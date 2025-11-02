@@ -1,60 +1,62 @@
-name: Build and Deploy via Docker Registry
+name: Build and Deploy to VPS (Develop)
 
 on:
   push:
     branches:
       - develop
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }} # snoroc_back
-  TAG: ${{ github.sha }}
-
 jobs:
-  build_and_push:
-    name: Build & Push to GHCR
+  build:
+    name: Build backend
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write # Nécessaire pour pusher vers GHCR
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          # Utilise le token que tu as créé et stocké dans les secrets
-          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Create archive
+        run: |
+          set -euxo pipefail
+          rm -rf dist
+          mkdir -p dist
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.DS_Store' \
+            --exclude='dist' \
+            ./ dist/
+          tar -czf snoroc_back.tar.gz -C dist .
+          ls -lh snoroc_back.tar.gz
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=,suffix=,format=short
-            type=raw,value=latest
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          # Exclure les fichiers inutiles pendant le build (si non fait dans .dockerignore)
-          # build-args: |
-          #   ...
+          name: snoroc_back
+          path: snoroc_back.tar.gz
+          if-no-files-found: error
 
   deploy:
-    name: Deploy from GHCR to VPS
+    name: Deploy backend to VPS
     runs-on: ubuntu-latest
-    needs: build_and_push
+    needs: build
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: snoroc_back
+          path: .
+
+      - name: Copy archive to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: 'snoroc_back.tar.gz'
+          target: '/tmp'
+          rm: false
+          overwrite: true
+
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -63,32 +65,27 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -euxo pipefail
-            echo "🚀 Starting deployment on VPS via Docker pull..."
-
-            # Définir les variables locales pour le VPS
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-            CONTAINER_NAME="snoroc_back_api"
-
-            # Se connecter à GHCR depuis le VPS (utilise le même PAT/USER)
-            echo "Logging into Docker registry..."
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-            # Puller la nouvelle image
-            echo "Pulling image $IMAGE..."
-            docker pull $IMAGE
-
-            # Arrêter et supprimer l'ancien container (si existant)
-            docker stop $CONTAINER_NAME || true
-            docker rm $CONTAINER_NAME || true
-
-            # Lancer le nouveau container (remplace 'api' par le nom de ton service)
-            # ATTENTION: Tu devras probablement passer tes variables d'environnement ici
-            echo "Starting new container..."
-            docker run -d \
-              --name $CONTAINER_NAME \
-              -p 3030:3030 \
-              $IMAGE
-
+            echo "🚀 Starting deployment on VPS..."
+            PROJECT_DIR="/home/${{ secrets.SSH_USER }}/snoroc-dev/snoroc_back"
+            mkdir -p "$PROJECT_DIR"
+            # Backup .env if present
+            if [ -f "$PROJECT_DIR/.env" ]; then
+              cp "$PROJECT_DIR/.env" "$PROJECT_DIR/.env.backup"
+              echo ".env backed up"
+            fi
+            # Clean previous files (except .env.backup)
+            find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.env.backup' -exec rm -rf {} +
+            # Extract new files
+            tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
+            # Restore .env if backup exists
+            if [ -f "$PROJECT_DIR/.env.backup" ]; then
+              mv "$PROJECT_DIR/.env.backup" "$PROJECT_DIR/.env"
+              echo ".env restored"
+            fi
+            rm -f /tmp/snoroc_back.tar.gz
+            # Change directory and restart container
+            cd "$PROJECT_DIR"
+            sudo docker compose up -d --build api
             echo "✅ Backend deployed and restarted successfully"
 
       - name: Verify API response
