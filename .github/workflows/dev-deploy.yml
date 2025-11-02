@@ -56,7 +56,7 @@ jobs:
             hostname
             whoami
 
-      - name: Upload archive to VPS (via rsync)
+      - name: Upload archive to VPS (via scp command)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -64,10 +64,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             mkdir -p /tmp
-        rsync_args: "-avz"
-        source: "snoroc_back.tar.gz"
-        target: "/tmp/snoroc_back.tar.gz"
-
+            scp -o StrictHostKeyChecking=no snoroc_back.tar.gz ubuntu@${{ secrets.SSH_HOST }}:/tmp/snoroc_back.tar.gz
 
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
