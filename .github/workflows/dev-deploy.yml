@@ -49,27 +49,20 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            echo "✅ SSH connection successful"
-            hostname
-            whoami
+            echo "✅ SSH OK on $(hostname)"
 
-      - name: Upload archive to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: 'snoroc_back.tar.gz'
-          target: '/tmp/'
-
-      - name: Deploy and restart backend
+      - name: Upload archive and deploy manually
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -euo pipefail
+            set -e
+            echo "📦 Transferring archive to /tmp..."
+            echo "${{ secrets.SSH_KEY }}" > /tmp/github_key && chmod 600 /tmp/github_key
+            scp -i /tmp/github_key -o StrictHostKeyChecking=no snoroc_back.tar.gz ubuntu@${{ secrets.SSH_HOST }}:/tmp/snoroc_back.tar.gz
+            echo "🧩 Deploying new version..."
             cd /srv/snoroc-dev
             rm -rf snoroc_back_release
             mkdir -p snoroc_back_release snoroc_back
@@ -77,3 +70,4 @@ jobs:
             rsync -a --delete --exclude='.env' snoroc_back_release/ snoroc_back/
             rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
             sudo docker compose up -d --build api
+            echo "✅ Deployment complete!"
