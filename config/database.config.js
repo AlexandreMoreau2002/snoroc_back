@@ -1,6 +1,6 @@
 const { Sequelize } = require("sequelize");
 const NODE_ENV = process.env.NODE_ENV || "dev";
-const allConfigs = require("./config.json");
+const allConfigs = require("./config");
 
 // Build Sequelize instance depending on environment
 function createSequelize() {
@@ -34,9 +34,9 @@ function createSequelize() {
     });
   }
 
-  // 3) Fallback: use local config file for development/testing
+  // 3) Fallback: use config helper for development/testing defaults
   const cfg = allConfigs[NODE_ENV] || allConfigs.dev;
-  console.log(`[DB] Using config.json profile: ${NODE_ENV} host=${cfg.host} db=${cfg.database} port=${cfg.port || 3306}`);
+  console.log(`[DB] Using config.js profile: ${NODE_ENV} host=${cfg.host} db=${cfg.database} port=${cfg.port || 3306}`);
   return new Sequelize({
     host: cfg.host,
     username: cfg.username,
