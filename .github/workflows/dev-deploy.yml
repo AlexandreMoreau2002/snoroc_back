@@ -13,20 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # On reprend ton étape de build originale, qui fonctionnait
       - name: Create archive
         run: |
           set -euxo pipefail
-          echo "Creating tarball..."
-          # On tar directement en excluant les fichiers inutiles
-          tar -czf snoroc_back.tar.gz \
+          rm -rf dist
+          mkdir -p dist
+          rsync -a --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
             --exclude='dist' \
-            --exclude='snoroc_back.tar.gz' \
-            .
-          echo "Tarball created:"
+            ./ dist/
+          # On crée l'archive à partir du dossier dist
+          tar -czf snoroc_back.tar.gz -C dist .
           ls -lh snoroc_back.tar.gz
 
       - name: Upload artifact
@@ -55,8 +56,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: 'snoroc_back.tar.gz'
           target: '/tmp'
-          # Assure-toi d'avoir corrigé le .bashrc sur ton VPS !
 
+      # Cette étape contient le script corrigé pour le VPS
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -67,10 +68,9 @@ jobs:
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
 
-            # CHEMIN COMPLET vers le dossier de votre projet
+            # Le bon chemin vers ton projet sur le VPS
             PROJECT_DIR="/home/ubuntu/snoroc-dev/snoroc_back"
 
-            # S'assurer que le dossier projet existe
             mkdir -p "$PROJECT_DIR"
 
             # Backup .env
@@ -99,7 +99,6 @@ jobs:
             cd "$PROJECT_DIR"
 
             echo "Building and restarting Docker containers..."
-            # Utiliser -f pour spécifier le fichier est plus sûr
             sudo docker compose -f docker-compose.yaml up -d --build api
 
             echo "✅ Backend deployed and restarted successfully"
@@ -108,5 +107,4 @@ jobs:
         run: |
           echo "🌐 Checking API response..."
           sleep 5
-          # Assure-toi que le port 3030 est correct
           curl -s http://${{ secrets.SSH_HOST }}:3030 || echo "⚠️ API check failed"
