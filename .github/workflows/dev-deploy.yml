@@ -13,25 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Stage backend sources
+      - name: Create archive
         run: |
           set -euxo pipefail
           rm -rf dist
-          mkdir -p dist/workspace
+          mkdir -p dist
           rsync -a --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
             --exclude='dist' \
-            ./ dist/workspace/
-          ls -la dist/workspace | head
-          du -sh dist/workspace || true
-
-      - name: Create archive
-        run: |
-          set -euxo pipefail
-          tar -czf snoroc_back.tar.gz -C dist/workspace .
+            ./ dist/
+          ls -la dist | head
+          du -sh dist || true
+          tar -czf snoroc_back.tar.gz -C dist .
           ls -lh snoroc_back.tar.gz
           tar -tzf snoroc_back.tar.gz | head
 
