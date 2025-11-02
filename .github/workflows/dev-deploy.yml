@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy to VPS
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build backend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -17,8 +18,10 @@ jobs:
         with:
           name: snoroc_back
           path: .
+          if-no-files-found: error
 
   deploy:
+    name: Deploy backend to VPS
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -28,17 +31,26 @@ jobs:
           name: snoroc_back
           path: ./snoroc_back
 
-      # 🔹 transfert runner → VPS (local vers distant)
+      - name: Test SSH connection
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
+          chmod 600 /tmp/github_key
+          echo "🔍 Testing SSH connection to ${{ secrets.SSH_HOST }}..."
+          ssh -i /tmp/github_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "hostname && whoami"
+          echo "✅ SSH connection successful"
+
       - name: Transfer project to VPS
         run: |
           echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
           chmod 600 /tmp/github_key
+          echo "📡 Transferring files to VPS..."
           rsync -avz --delete \
             -e "ssh -i /tmp/github_key -o StrictHostKeyChecking=no" \
             --exclude='.env' --exclude='.git' --exclude='node_modules' \
-            ./snoroc_back/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
+            ./snoroc_back/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
+          echo "✅ Transfer complete"
 
-      # 🔹 rebuild docker sur le VPS
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -47,6 +59,13 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -eux
+            echo "🚀 Starting deployment on VPS..."
             cd /srv/snoroc-dev
             sudo docker compose up -d --build api
-            echo "✅ Deploy complete"
+            echo "✅ Backend deployed and restarted successfully"
+
+      - name: Verify API response
+        run: |
+          echo "🌐 Checking API response..."
+          sleep 5
+          curl -s http://${{ secrets.SSH_HOST }}:3030 || echo "⚠️ API check failed"
