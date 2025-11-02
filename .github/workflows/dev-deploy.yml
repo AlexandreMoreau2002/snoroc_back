@@ -12,18 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Inspect workspace
-        run: |
-          pwd
-          ls -la
-
-      - name: Upload workspace
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: snoroc_back
-          path: |
-            .
-          if-no-files-found: error
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
@@ -35,7 +28,18 @@ jobs:
           name: snoroc_back
           path: ./snoroc_back
 
-      - name: Upload code to VPS and deploy
+      # 🔹 transfert runner → VPS (local vers distant)
+      - name: Transfer project to VPS
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
+          chmod 600 /tmp/github_key
+          rsync -avz --delete \
+            -e "ssh -i /tmp/github_key -o StrictHostKeyChecking=no" \
+            --exclude='.env' --exclude='.git' --exclude='node_modules' \
+            ./snoroc_back/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
+
+      # 🔹 rebuild docker sur le VPS
+      - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -43,9 +47,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -eux
-            echo "📡 Transfert via rsync..."
-            rsync -avz --delete --exclude='.env' --exclude='.git' --exclude='node_modules' ./snoroc_back/ ubuntu@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
-            echo "🐳 Restarting backend..."
             cd /srv/snoroc-dev
             sudo docker compose up -d --build api
             echo "✅ Deploy complete"
