@@ -6,7 +6,7 @@ on:
       - develop
 
 jobs:
-  package:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -14,75 +14,38 @@ jobs:
 
       - name: Inspect workspace
         run: |
-          set -eux
           pwd
           ls -la
 
-      - name: Stage backend sources
-        run: |
-          set -euxo pipefail
-          rm -rf dist
-          mkdir -p dist/workspace
-          rsync -a --delete \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='.env' \
-            --exclude='.DS_Store' \
-            --exclude='dist' \
-            ./ dist/workspace/
-          ls -la dist/workspace | head
-          du -sh dist/workspace || true
-
-      - name: Create archive
-        run: |
-          set -euxo pipefail
-          tar -czf snoroc_back.tar.gz -C dist/workspace .
-          ls -lh snoroc_back.tar.gz
-          tar -tzf snoroc_back.tar.gz | head
-
-      - name: Upload artifact
+      - name: Upload workspace
         uses: actions/upload-artifact@v4
         with:
           name: snoroc_back
-          path: snoroc_back.tar.gz
+          path: |
+            .
+          if-no-files-found: error
 
   deploy:
     runs-on: ubuntu-latest
-    needs: package
+    needs: build
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: snoroc_back
-          path: .
+          path: ./snoroc_back
 
-      - name: Copy archive
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "snoroc_back.tar.gz"
-          target: "/tmp"
-
-      - name: Deploy
+      - name: Upload code to VPS and deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -euxo pipefail
+            set -eux
+            echo "📡 Transfert via rsync..."
+            rsync -avz --delete --exclude='.env' --exclude='.git' --exclude='node_modules' ./snoroc_back/ ubuntu@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
+            echo "🐳 Restarting backend..."
             cd /srv/snoroc-dev
-            echo "📦 Extracting archive..."
-            rm -rf snoroc_back_release
-            mkdir -p snoroc_back_release snoroc_back
-            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release
-            echo "📁 Contents of release directory:"
-            ls -la snoroc_back_release | head
-            echo "🔄 Syncing to live directory..."
-            rsync -a --delete --exclude='.env' --exclude='.git' snoroc_back_release/ snoroc_back/
-            rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
-            echo "🐳 Rebuilding api service..."
             sudo docker compose up -d --build api
-            sudo docker compose ps
+            echo "✅ Deploy complete"
