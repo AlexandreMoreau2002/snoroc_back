@@ -45,6 +45,17 @@ jobs:
           name: snoroc_back
           path: .
 
+      - name: Test SSH connection (debug)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "✅ SSH authentication OK"
+            hostname
+            whoami
+
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
