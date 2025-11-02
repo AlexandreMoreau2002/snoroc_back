@@ -12,26 +12,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare backend payload
+      - name: Inspect workspace
         run: |
-          set -euxo pipefail
-          mkdir -p package
-          rsync -a \
-            --delete \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='.env' \
-            --exclude='.DS_Store' \
-            snoroc_back/ package/snoroc_back/
-          ls -la package
-          ls -la package/snoroc_back | head
-          du -sh package/snoroc_back || true
+          set -eux
+          pwd
+          ls -la
 
       - name: Create backend archive
         run: |
           set -euxo pipefail
-          tar -czf snoroc_back.tar.gz -C package snoroc_back
+          tar -czf snoroc_back.tar.gz \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.DS_Store' \
+            --exclude='snoroc_back.tar.gz' \
+            .
           ls -lh snoroc_back.tar.gz
+          tar -tzf snoroc_back.tar.gz | head
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -72,9 +70,9 @@ jobs:
             mkdir -p snoroc_back_release snoroc_back
             tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release
             echo "📁 Contents of release directory:"
-            ls -la snoroc_back_release
+            ls -la snoroc_back_release | head
             echo "🔄 Syncing to live directory..."
-            rsync -a --delete --exclude='.env' --exclude='.git' snoroc_back_release/snoroc_back/ snoroc_back/
+            rsync -a --delete --exclude='.env' --exclude='.git' snoroc_back_release/ snoroc_back/
             rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
             echo "🐳 Rebuilding api service..."
             sudo docker compose up -d --build api
