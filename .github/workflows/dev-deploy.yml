@@ -24,7 +24,7 @@ jobs:
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
-            .
+            . || true
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
