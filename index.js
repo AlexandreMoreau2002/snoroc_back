@@ -5,12 +5,13 @@ if (NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
-const port = process.env.PORT || 3030
 const express = require('express')
 const app = express()
 const path = require('path')
 const cors = require('cors')
+const port = process.env.PORT || 3030
 const bodyParser = require('body-parser')
+const { version } = require('./package.json')
 const sequelize = require('./config/database.config')
 
 app.use(cors())
@@ -37,13 +38,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
 app.use('/contact', require('./src/routes/contact.routes'));
 
 // test de l'api
-app.get('/', (req, res) => res.send('Hello World'))
+app.get('/', (req, res) => res.send(`Hello World - v${version}`))
 
 app.listen(port, async () => {
   try {
     await sequelize.authenticate()
     console.log(`[${NODE_ENV}] Connexion DB établie avec succès.`)
-    console.log(`Server listening on port ${port}`)
+    console.log(`Server v${version} listening on port ${port}`)
   } catch (error) {
     console.error('impossible de se connecter a la bdd:', error)
   }

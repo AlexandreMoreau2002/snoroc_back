@@ -16,11 +16,12 @@ jobs:
       - name: Package backend sources
         run: |
           rm -f snoroc_back.tar.gz
-          tar --exclude="./.git" \
-              --exclude="./node_modules" \
-              --exclude="./.env" \
-              --exclude="./.DS_Store" \
-              -czf snoroc_back.tar.gz .
+          tar -czf snoroc_back.tar.gz \
+              --exclude='.git' \
+              --exclude='node_modules' \
+              --exclude='.env' \
+              --exclude='.DS_Store' \
+              -C snoroc_back .
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
