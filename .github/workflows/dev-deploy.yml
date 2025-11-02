@@ -19,7 +19,7 @@ jobs:
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
-            -C snoroc_back .
+            .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -58,6 +58,6 @@ jobs:
             rm -rf snoroc_back_release
             mkdir -p snoroc_back_release snoroc_back
             tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release
-            rsync -a --delete --exclude='.env' snoroc_back_release/ snoroc_back/
+            rsync -a --delete --exclude='.env' --exclude='.git' snoroc_back_release/ snoroc_back/
             rm -rf snoroc_back_release /tmp/snoroc_back.tar.gz
             sudo docker compose up -d --build api
