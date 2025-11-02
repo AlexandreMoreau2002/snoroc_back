@@ -9,18 +9,16 @@ jobs:
   build:
     name: Build backend
     runs-on: ubuntu-latest
-    outputs:
-      artifact: ${{ steps.package.outputs.artifact }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Package backend sources
-        id: package
         run: |
-          cd ${{ github.workspace }}
-          echo "Packaging backend..."
-          tar -czf snoroc_back.tar.gz \
+          cd snoroc_back
+          echo "Packaging snoroc_back/"
+          tar -czf ../snoroc_back.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
@@ -45,26 +43,24 @@ jobs:
           name: snoroc_back
           path: .
 
-      - name: Test SSH connection (debug)
+      - name: Test SSH connection
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            echo "✅ SSH authentication OK"
+            echo "✅ SSH connection successful"
             hostname
-            whoami
 
-      - name: Upload archive to VPS (via scp command)
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Upload archive to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            mkdir -p /tmp
-            scp -o StrictHostKeyChecking=no snoroc_back.tar.gz ubuntu@${{ secrets.SSH_HOST }}:/tmp/snoroc_back.tar.gz
+          source: 'snoroc_back.tar.gz'
+          target: '/tmp/'
 
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
