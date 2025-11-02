@@ -66,25 +66,21 @@ jobs:
           script: |
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
-            PROJECT_DIR="/home/${{ secrets.SSH_USER }}/snoroc-dev/snoroc_back"
+            REMOTE_ROOT="/home/${{ secrets.SSH_USER }}/snoroc-dev"
+            PROJECT_DIR="${REMOTE_ROOT}/snoroc_back"
             mkdir -p "$PROJECT_DIR"
-            # Backup .env if present
             if [ -f "$PROJECT_DIR/.env" ]; then
               cp "$PROJECT_DIR/.env" "$PROJECT_DIR/.env.backup"
               echo ".env backed up"
             fi
-            # Clean previous files (except .env.backup)
             find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.env.backup' -exec rm -rf {} +
-            # Extract new files
             tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
-            # Restore .env if backup exists
             if [ -f "$PROJECT_DIR/.env.backup" ]; then
               mv "$PROJECT_DIR/.env.backup" "$PROJECT_DIR/.env"
               echo ".env restored"
             fi
             rm -f /tmp/snoroc_back.tar.gz
-            # Change directory and restart container
-            cd "$PROJECT_DIR"
+            cd "$REMOTE_ROOT"
             sudo docker compose up -d --build api
             echo "✅ Backend deployed and restarted successfully"
 
