@@ -1,64 +1,60 @@
-name: Build and Deploy to VPS (Develop)
+name: Build and Deploy via Docker Registry
 
 on:
   push:
     branches:
       - develop
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }} # snoroc_back
+  TAG: ${{ github.sha }}
+
 jobs:
-  build:
-    name: Build backend
+  build_and_push:
+    name: Build & Push to GHCR
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Nécessaire pour pusher vers GHCR
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create archive
-        run: |
-          set -euxo pipefail
-          rm -rf dist
-          mkdir -p dist
-          # Copie les fichiers nécessaires dans 'dist' en excluant les éléments inutiles
-          rsync -a --delete \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='.env' \
-            --exclude='.DS_Store' \
-            --exclude='dist' \
-            ./ dist/
-          # Crée l'archive à partir du dossier temporaire 'dist'
-          tar -czf snoroc_back.tar.gz -C dist .
-          ls -lh snoroc_back.tar.gz
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
         with:
-          name: snoroc_back
-          path: snoroc_back.tar.gz
-          if-no-files-found: error
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          # Utilise le token que tu as créé et stocké dans les secrets
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Exclure les fichiers inutiles pendant le build (si non fait dans .dockerignore)
+          # build-args: |
+          #   ...
 
   deploy:
-    name: Deploy backend to VPS
+    name: Deploy from GHCR to VPS
     runs-on: ubuntu-latest
-    needs: build
+    needs: build_and_push
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: snoroc_back
-          path: .
-
-      - name: Copy archive to VPS via SCP (Contournement du .bashrc) 🔑
-        uses: appleboy/scp-action@v0.1.4 # Utilisation d'une version stable
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: 'snoroc_back.tar.gz'
-          target: '/tmp'
-          # L'option clé pour gérer les connexions perturbées par un texte de bienvenue
-          use_insecure_cipher: true
-
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -67,41 +63,31 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -euxo pipefail
-            echo "🚀 Starting deployment on VPS..."
+            echo "🚀 Starting deployment on VPS via Docker pull..."
 
-            PROJECT_DIR="/home/ubuntu/snoroc-dev/snoroc_back"
+            # Définir les variables locales pour le VPS
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+            CONTAINER_NAME="snoroc_back_api"
 
-            mkdir -p "$PROJECT_DIR"
+            # Se connecter à GHCR depuis le VPS (utilise le même PAT/USER)
+            echo "Logging into Docker registry..."
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
-            # 1. Sauvegarde du fichier .env existant
-            tmp_env=""
-            if [ -f "$PROJECT_DIR/.env" ]; then
-              tmp_env=$(mktemp)
-              cp "$PROJECT_DIR/.env" "$tmp_env"
-              echo "File .env backed up."
-            fi
+            # Puller la nouvelle image
+            echo "Pulling image $IMAGE..."
+            docker pull $IMAGE
 
-            # 2. Nettoyage du dossier (sauf le .env)
-            echo "Cleaning old application files (except .env)..."
-            find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
+            # Arrêter et supprimer l'ancien container (si existant)
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
 
-            # 3. Extraction de la nouvelle archive
-            echo "Extracting new application files..."
-            tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
-
-            # 4. Restauration du fichier .env
-            if [ -n "${tmp_env:-}" ] && [ -f "$tmp_env" ]; then
-              mv "$tmp_env" "$PROJECT_DIR/.env"
-              echo "File .env restored."
-            fi
-
-            # 5. Nettoyage de l'archive temporaire
-            rm -f /tmp/snoroc_back.tar.gz
-
-            # 6. Démarrage de Docker Compose (depuis le bon dossier)
-            cd "$PROJECT_DIR"
-            echo "Building and restarting Docker containers..."
-            sudo docker compose -f docker-compose.yaml up -d --build api
+            # Lancer le nouveau container (remplace 'api' par le nom de ton service)
+            # ATTENTION: Tu devras probablement passer tes variables d'environnement ici
+            echo "Starting new container..."
+            docker run -d \
+              --name $CONTAINER_NAME \
+              -p 3030:3030 \
+              $IMAGE
 
             echo "✅ Backend deployed and restarted successfully"
 
