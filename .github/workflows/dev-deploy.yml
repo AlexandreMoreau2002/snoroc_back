@@ -16,12 +16,11 @@ jobs:
       - name: Package backend sources
         run: |
           rm -f snoroc_back.tar.gz
-          tar -czf snoroc_back.tar.gz \
+          tar -czf snoroc_back.tar.gz -C snoroc_back . \
               --exclude='.git' \
               --exclude='node_modules' \
               --exclude='.env' \
-              --exclude='.DS_Store' \
-              -C snoroc_back .
+              --exclude='.DS_Store'
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -29,8 +28,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "snoroc_back.tar.gz"
-          target: "/tmp"
+          source: 'snoroc_back.tar.gz'
+          target: '/tmp'
 
       - name: Deploy and restart backend on VPS
         uses: appleboy/ssh-action@v1.2.0
