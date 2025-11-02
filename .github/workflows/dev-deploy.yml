@@ -1,0 +1,50 @@
+name: Deploy Dev to VPS
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Package backend sources
+        run: |
+          rm -f snoroc_back.tar.gz
+          tar --exclude="./.git" \
+              --exclude="./node_modules" \
+              --exclude="./.env" \
+              --exclude="./.DS_Store" \
+              -czf snoroc_back.tar.gz .
+
+      - name: Upload archive to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "snoroc_back.tar.gz"
+          target: "/tmp"
+
+      - name: Deploy and restart backend on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /srv/snoroc-dev
+            rm -rf snoroc_back_release
+            mkdir -p snoroc_back_release
+            mkdir -p snoroc_back
+            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back_release --strip-components=1
+            rsync -a --delete --exclude='.env' snoroc_back_release/ snoroc_back/
+            rm -rf snoroc_back_release
+            rm -f /tmp/snoroc_back.tar.gz
+            sudo docker compose up -d --build api
