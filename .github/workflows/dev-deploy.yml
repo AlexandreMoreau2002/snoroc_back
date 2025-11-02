@@ -44,9 +44,8 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > /tmp/github_key
           chmod 600 /tmp/github_key
           echo "📡 Transferring files to VPS..."
-          RSYNC_RSH="ssh -i /tmp/github_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -T /tmp"
-          rsync -az --delete --rsync-path="sudo rsync" \
-            -e "$RSYNC_RSH" \
+          rsync -az --delete \
+            -e "ssh -i /tmp/github_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR" \
             --exclude='.env' --exclude='.git' --exclude='node_modules' \
             ./snoroc_back/ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/srv/snoroc-dev/snoroc_back/
@@ -60,10 +59,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -eux
+            echo "🚀 Starting deployment on VPS..."
             cd /srv/snoroc-dev
-            echo "🚀 Rebuilding API container..."
             sudo docker compose up -d --build api
-            echo "✅ Backend deployed successfully"
+            echo "✅ Backend deployed and restarted successfully"
 
       - name: Verify API response
         run: |
