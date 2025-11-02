@@ -1,4 +1,4 @@
-name: Build and Deploy Dev to VPS
+name: Build and Deploy
 
 on:
   push:
@@ -18,16 +18,25 @@ jobs:
           pwd
           ls -la
 
-      - name: Create backend archive
+      - name: Stage backend sources
         run: |
           set -euxo pipefail
-          tar -czf snoroc_back.tar.gz \
+          rm -rf dist
+          mkdir -p dist/workspace
+          rsync -a --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
-            --exclude='snoroc_back.tar.gz' \
-            .
+            --exclude='dist' \
+            ./ dist/workspace/
+          ls -la dist/workspace | head
+          du -sh dist/workspace || true
+
+      - name: Create archive
+        run: |
+          set -euxo pipefail
+          tar -czf snoroc_back.tar.gz -C dist/workspace .
           ls -lh snoroc_back.tar.gz
           tar -tzf snoroc_back.tar.gz | head
 
@@ -47,7 +56,7 @@ jobs:
           name: snoroc_back
           path: .
 
-      - name: Copy archive to VPS
+      - name: Copy archive
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -56,7 +65,7 @@ jobs:
           source: "snoroc_back.tar.gz"
           target: "/tmp"
 
-      - name: Deploy backend on VPS
+      - name: Deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
