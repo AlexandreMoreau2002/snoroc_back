@@ -10,10 +10,34 @@ jobs:
     name: Build backend
     runs-on: ubuntu-latest
     steps:
-      # ... (toutes les étapes du job build)
-      # ...
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  deploy: # <-- DOIT ÊTRE ALIGNÉ AVEC 'build:'
+      - name: Create archive
+        run: |
+          set -euxo pipefail
+          rm -rf dist
+          mkdir -p dist
+          # Copie les fichiers nécessaires dans 'dist' en excluant les éléments inutiles
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.DS_Store' \
+            --exclude='dist' \
+            ./ dist/
+          # Crée l'archive à partir du dossier temporaire 'dist'
+          tar -czf snoroc_back.tar.gz -C dist .
+          ls -lh snoroc_back.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snoroc_back
+          path: snoroc_back.tar.gz
+          if-no-files-found: error
+
+  deploy: # <--- ALIGNEMENT CORRIGÉ
     name: Deploy backend to VPS
     runs-on: ubuntu-latest
     needs: build
@@ -24,7 +48,8 @@ jobs:
           name: snoroc_back
           path: .
 
-      - name: Copy archive to VPS using rsync 🔄
+      - name: Copy archive to VPS using rsync
+        # L'utilisation de rsync-action contourne le problème de ton .bashrc
         uses: gregoryg/rsync-action@v1.0.1
         with:
           ssh_private_key: ${{ secrets.SSH_KEY }}
@@ -42,10 +67,12 @@ jobs:
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
 
+            # Le chemin absolu correct sur ton VPS
             PROJECT_DIR="/home/ubuntu/snoroc-dev/snoroc_back"
 
             mkdir -p "$PROJECT_DIR"
 
+            # 1. Sauvegarde du fichier .env existant
             tmp_env=""
             if [ -f "$PROJECT_DIR/.env" ]; then
               tmp_env=$(mktemp)
@@ -53,19 +80,24 @@ jobs:
               echo "File .env backed up."
             fi
 
+            # 2. Nettoyage du dossier (sauf le .env)
             echo "Cleaning old application files (except .env)..."
             find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
 
+            # 3. Extraction de la nouvelle archive
             echo "Extracting new application files..."
             tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
 
+            # 4. Restauration du fichier .env
             if [ -n "${tmp_env:-}" ] && [ -f "$tmp_env" ]; then
               mv "$tmp_env" "$PROJECT_DIR/.env"
               echo "File .env restored."
             fi
 
+            # 5. Nettoyage de l'archive temporaire
             rm -f /tmp/snoroc_back.tar.gz
 
+            # 6. Démarrage de Docker Compose (depuis le bon dossier)
             cd "$PROJECT_DIR"
             echo "Building and restarting Docker containers..."
             sudo docker compose -f docker-compose.yaml up -d --build api
