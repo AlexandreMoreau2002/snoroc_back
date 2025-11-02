@@ -16,9 +16,8 @@ jobs:
 
       - name: Package backend sources
         run: |
-          cd snoroc_back
-          echo "Packaging snoroc_back/"
-          tar -czf ../snoroc_back.tar.gz \
+          echo "Packaging backend at repo root..."
+          tar -czf snoroc_back.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
@@ -52,6 +51,7 @@ jobs:
           script: |
             echo "✅ SSH connection successful"
             hostname
+            whoami
 
       - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
