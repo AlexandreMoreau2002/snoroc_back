@@ -1,9 +1,11 @@
 {
   "name": "back",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "main": "index.js",
-  "engines": { "node": ">=18 <23" },
+  "engines": {
+    "node": ">=18 <23"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
