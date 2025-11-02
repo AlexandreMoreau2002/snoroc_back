@@ -1,4 +1,4 @@
-name: Build and Deploy to VPS
+name: Build and Deploy to VPS (Develop)
 
 on:
   push:
@@ -16,22 +16,18 @@ jobs:
       - name: Create archive
         run: |
           set -euxo pipefail
-          rm -rf dist
-          mkdir -p dist
-          rsync -a --delete \
+          echo "Creating tarball..."
+          # On tar directement en excluant les fichiers inutiles
+          tar -czf snoroc_back.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.DS_Store' \
             --exclude='dist' \
-            ./ dist/
-          ls -la dist | head
-          du -sh dist || true
-          tar -czf snoroc_back.tar.gz -C dist .
+            --exclude='snoroc_back.tar.gz' \
+            .
+          echo "Tarball created:"
           ls -lh snoroc_back.tar.gz
-          tar -tzf snoroc_back.tar.gz > tar_listing.txt
-          head tar_listing.txt
-          rm tar_listing.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -55,38 +51,62 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }} # Doit être 'ubuntu'
           key: ${{ secrets.SSH_KEY }}
-          source: "snoroc_back.tar.gz"
-          target: "/tmp"
+          source: 'snoroc_back.tar.gz'
+          target: '/tmp'
+          # Assure-toi d'avoir corrigé le .bashrc sur ton VPS !
 
       - name: Deploy and restart backend
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }} # Doit être 'ubuntu'
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
-            cd /srv/snoroc-dev
-            mkdir -p snoroc_back
+
+            # CHEMIN COMPLET vers le dossier de votre projet
+            PROJECT_DIR="/home/ubuntu/snoroc-dev/snoroc_back"
+
+            # S'assurer que le dossier projet existe
+            mkdir -p "$PROJECT_DIR"
+
+            # Backup .env
             tmp_env=""
-            if [ -f snoroc_back/.env ]; then
+            if [ -f "$PROJECT_DIR/.env" ]; then
               tmp_env=$(mktemp)
-              cp snoroc_back/.env "$tmp_env"
+              cp "$PROJECT_DIR/.env" "$tmp_env"
+              echo "File .env backed up."
             fi
-            find snoroc_back -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
-            tar -xzf /tmp/snoroc_back.tar.gz -C snoroc_back
+
+            echo "Cleaning old application files (except .env)..."
+            find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
+
+            echo "Extracting new application files..."
+            tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
+
+            # Restore .env
             if [ -n "${tmp_env:-}" ] && [ -f "$tmp_env" ]; then
-              mv "$tmp_env" snoroc_back/.env
+              mv "$tmp_env" "$PROJECT_DIR/.env"
+              echo "File .env restored."
             fi
+
             rm -f /tmp/snoroc_back.tar.gz
-            sudo docker compose up -d --build api
+
+            # Aller dans le dossier du projet pour lancer docker compose
+            cd "$PROJECT_DIR"
+
+            echo "Building and restarting Docker containers..."
+            # Utiliser -f pour spécifier le fichier est plus sûr
+            sudo docker compose -f docker-compose.yaml up -d --build api
+
             echo "✅ Backend deployed and restarted successfully"
 
       - name: Verify API response
         run: |
           echo "🌐 Checking API response..."
           sleep 5
+          # Assure-toi que le port 3030 est correct
           curl -s http://${{ secrets.SSH_HOST }}:3030 || echo "⚠️ API check failed"
