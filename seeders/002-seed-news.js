@@ -5,7 +5,7 @@ module.exports = {
     try {
       // Centralize public base URL for images
       // Explicit behavior per environment: in production use PUBLIC_BASE_URL, else use localhost
-      const NODE_ENV = process.env.NODE_ENV || 'dev'
+      const NODE_ENV = process.env.NODE_ENV || 'development'
       let BASE_URL
       if (NODE_ENV === 'production') {
         if (!process.env.PUBLIC_BASE_URL) {

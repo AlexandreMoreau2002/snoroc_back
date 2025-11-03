@@ -6,7 +6,7 @@ function toNumber(value, fallback) {
 }
 
 module.exports = {
-  dev: {
+  development: {
     username: process.env.DB_USER || process.env.MYSQL_USER || "snoroc",
     password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || "1234",
     database: process.env.DB_NAME || process.env.MYSQL_DATABASE || "snoroc",
