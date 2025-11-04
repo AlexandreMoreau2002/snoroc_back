@@ -67,7 +67,7 @@ jobs:
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
 
-            REMOTE_ROOT="/srv/snoroc_dev"
+            REMOTE_ROOT="/srv/snoroc-dev"
             PROJECT_DIR="${REMOTE_ROOT}/snoroc_back"
 
             mkdir -p "$PROJECT_DIR"
