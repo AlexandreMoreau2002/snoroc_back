@@ -55,7 +55,7 @@ jobs:
         with:
           host: ${{ vars.SSH_HOST }}
           username: ${{ vars.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ vars.SSH_KEY }}
           source: 'snoroc_back.tar.gz'
           target: '/tmp'
           rm: false
@@ -66,7 +66,7 @@ jobs:
         with:
           host: ${{ vars.SSH_HOST }}
           username: ${{ vars.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ vars.SSH_KEY }}
           script: |
             set -euxo pipefail
             echo "🚀 Starting deployment on VPS..."
@@ -90,14 +90,14 @@ jobs:
             set +x
             {
               echo "EMAIL=${{ vars.EMAIL }}"
-              echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}"
+              echo "EMAIL_PASSWORD=${{ vars.EMAIL_PASSWORD }}"
               echo "DB_HOST=${{ vars.DB_HOST }}"
               echo "DB_PORT=${{ vars.DB_PORT }}"
-              echo "DB_USER=${{ secrets.DB_USER }}"
-              echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+              echo "DB_USER=${{ vars.DB_USER }}"
+              echo "DB_PASSWORD=${{ vars.DB_PASSWORD }}"
               echo "DB_NAME=${{ vars.DB_NAME }}"
-              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
-              echo "PASSWORD=${{ secrets.PASSWORD }}"
+              echo "JWT_SECRET=${{ vars.JWT_SECRET }}"
+              echo "PASSWORD=${{ vars.PASSWORD }}"
               echo "ENV=${{ vars.ENV }}"
               echo "BASE_URL=${{ vars.BASE_URL }}"
               echo "FRONTEND_URL=${{ vars.FRONTEND_URL }}"
