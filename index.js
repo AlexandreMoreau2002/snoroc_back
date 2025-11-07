@@ -1,5 +1,5 @@
 // back/index.js
-const ENV = process.env.ENV || 'development'
+const ENV = process.env.ENV || 'dev'
 if (ENV !== 'production') {
   // Load local env vars in development
   require('dotenv').config()

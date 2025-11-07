@@ -1,11 +1,11 @@
 const mysql = require("mysql2/promise");
 const configs = require("./config");
 
-const ENV = process.env.ENV || "development";
+const ENV = process.env.ENV || "dev";
 let initPromise = null;
 
 function getDbConfig() {
-  const fallback = configs[ENV] || configs.development || {};
+  const fallback = configs[ENV] || configs.dev || {};
   return {
     host: process.env.DB_HOST || fallback.host,
     port: Number(process.env.DB_PORT || fallback.port || 3306),

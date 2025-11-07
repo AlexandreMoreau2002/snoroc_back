@@ -1,5 +1,5 @@
 const { Sequelize } = require("sequelize");
-const ENV = process.env.ENV || "development";
+const ENV = process.env.ENV || "dev";
 const allConfigs = require("./config");
 
 // Build Sequelize instance depending on environment
@@ -35,7 +35,7 @@ function createSequelize() {
   }
 
   // 3) Fallback: use config helper for development/testing defaults
-  const cfg = allConfigs[ENV] || allConfigs.development;
+  const cfg = allConfigs[ENV] || allConfigs.dev;
   console.log(`[DB] Using config.js profile: ${ENV} host=${cfg.host} db=${cfg.database} port=${cfg.port || 3306}`);
   return new Sequelize({
     host: cfg.host,

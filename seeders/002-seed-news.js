@@ -4,14 +4,11 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     try {
       // Centralize public base URL for images
-      // Explicit behavior per environment: in production use PUBLIC_BASE_URL, else use localhost
-      const NODE_ENV = process.env.NODE_ENV || 'development'
+      // Explicit behavior per environment: in production use BASE_URL, else use localhost
+      const ENV = process.env.ENV || 'dev'
       let BASE_URL
-      if (NODE_ENV === 'production') {
-        if (!process.env.PUBLIC_BASE_URL) {
-          throw new Error('PUBLIC_BASE_URL must be set in production to build public image URLs')
-        }
-        BASE_URL = process.env.PUBLIC_BASE_URL
+      if (ENV === 'production') {
+        BASE_URL = process.env.BASE_URL
       } else {
         BASE_URL = `http://localhost:${process.env.PORT || 3030}`
       }
