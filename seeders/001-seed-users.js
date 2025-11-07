@@ -6,7 +6,7 @@ const { generateJwt } = require('../src/utils/generateJwt.utils')
 module.exports = {
   async up(queryInterface, Sequelize) {
     try {
-      const hashedPassword = await encryptPassword(process.env.password)
+      const hashedPassword = await encryptPassword(process.env.PASSWORD)
 
       const tokenAdmin = await generateJwt({
         id: 1,
