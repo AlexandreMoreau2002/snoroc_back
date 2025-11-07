@@ -1,9 +1,7 @@
 // back/index.js
+// Always load .env before reading ENV so file-based configs apply if no real env vars are set
+require('dotenv').config()
 const ENV = process.env.ENV || 'dev'
-if (ENV !== 'production') {
-  // Load local env vars in development
-  require('dotenv').config()
-}
 
 const express = require('express')
 const app = express()
