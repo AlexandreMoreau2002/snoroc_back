@@ -12,7 +12,7 @@ async function start() {
   try {
     await Promise.all([initDatabase(), sequelize.authenticate()])
     console.log(
-      `Connexion a la base de donnée établie avec succès, Server v${version}, mode : [${ENV}]`
+      `Connexion a la base de donnée établie avec succès, Server v${version}, mode : ${ENV}`
     )
   } catch (error) {
     console.error('impossible de se connecter a la bdd:', error)
