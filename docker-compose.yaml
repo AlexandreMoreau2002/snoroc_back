@@ -9,7 +9,7 @@ services:
     ports:
       - '3306:3306'
     volumes:
-      - db_data:/var/lib/mysql
+      - /srv/snoroc-mysql/dev:/var/lib/mysql
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '--silent']
       interval: 5s
