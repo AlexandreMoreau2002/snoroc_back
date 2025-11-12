@@ -7,7 +7,6 @@ function createSequelize() {
   // 1) If a DATABASE_URL is provided, prefer it (useful for managed services)
   const connectionUrl = process.env.DATABASE_URL;
   if (connectionUrl) {
-    console.log(`[DB] Using connection URL from env (${ENV}).`);
     return new Sequelize(connectionUrl, {
       dialect: "mysql",
       logging: false,
@@ -22,7 +21,6 @@ function createSequelize() {
   const port = Number(process.env.DB_PORT || 3306);
 
   if (host && username && database) {
-    console.log(`[DB] Using discrete env vars (${ENV}) host=${host} db=${database} port=${port}`);
     return new Sequelize({
       host,
       username,
@@ -36,7 +34,6 @@ function createSequelize() {
 
   // 3) Fallback: use config helper for development/testing defaults
   const cfg = allConfigs[ENV] || allConfigs.dev;
-  console.log(`[DB] Using config.js profile: ${ENV} host=${cfg.host} db=${cfg.database} port=${cfg.port || 3306}`);
   return new Sequelize({
     host: cfg.host,
     username: cfg.username,

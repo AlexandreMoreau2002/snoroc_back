@@ -1,8 +1,7 @@
 // back/src/utils/generateJwt.utils.js
-
-require('dotenv').config();
-const secretKey = process.env.JWT_SECRET;
-const jwt = require("jsonwebtoken");
+require('../../config/loadEnv')
+const secretKey = process.env.JWT_SECRET
+const jwt = require('jsonwebtoken')
 
 const ninetyNineYearsInSeconds = 99 * 365 * 24 * 60 * 60
 

@@ -11,10 +11,17 @@
  * @param {Object|Array} data - Données à retourner (optionnel)
  * @param {Object} meta - Métadonnées (pagination, etc.) (optionnel)
  */
-const successResponse = (res, statusCode = 200, message, data = null, meta = null) => {
+const successResponse = (
+  res,
+  statusCode = 200,
+  message,
+  data = null,
+  meta = null,
+  extra = null
+) => {
   const response = {
-    success: true,
-    message
+    error: false,
+    message,
   }
 
   if (data !== null) {
@@ -23,6 +30,10 @@ const successResponse = (res, statusCode = 200, message, data = null, meta = nul
 
   if (meta !== null) {
     response.meta = meta
+  }
+
+  if (extra && typeof extra === 'object') {
+    Object.assign(response, extra)
   }
 
   return res.status(statusCode).json(response)
@@ -36,16 +47,29 @@ const successResponse = (res, statusCode = 200, message, data = null, meta = nul
  * @param {string} errorCode - Code d'erreur spécifique (optionnel)
  * @param {Object} details - Détails supplémentaires de l'erreur (optionnel)
  */
-const errorResponse = (res, statusCode = 500, message, errorCode = null, details = null) => {
+const errorResponse = (
+  res,
+  statusCode = 500,
+  message,
+  errorCode = null,
+  details = null,
+  extra = null
+) => {
   const response = {
-    success: false,
-    message
+    error: true,
+    message,
   }
 
-  if (errorCode || details) {
-    response.error = {}
-    if (errorCode) response.error.code = errorCode
-    if (details) response.error.details = details
+  if (errorCode) {
+    response.code = errorCode
+  }
+
+  if (details !== null) {
+    response.details = details
+  }
+
+  if (extra && typeof extra === 'object') {
+    Object.assign(response, extra)
   }
 
   return res.status(statusCode).json(response)

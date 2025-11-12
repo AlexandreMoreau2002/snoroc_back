@@ -1,50 +1,19 @@
 // back/index.js
-// Always load .env before reading ENV so file-based configs apply if no real env vars are set
-require('dotenv').config()
-const ENV = process.env.ENV || 'dev'
-
-const express = require('express')
-const app = express()
-const path = require('path')
-const cors = require('cors')
-const port = process.env.PORT || 3030
-const bodyParser = require('body-parser')
+require('./config/loadEnv')
+const app = require('./app')
 const { version } = require('./package.json')
 const sequelize = require('./config/database.config')
 const initDatabase = require('./config/init-database')
 
-app.use(cors())
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
-
-// user route
-app.use('/user', require('./src/routes/user.routes'))
-
-// // news route
-app.use('/news', require('./src/routes/news.routes'))
-
-// // event route
-// app.use('/event', require('./src/routes/event.routes'));
-
-// album route
-// // app.use('/album', require(./src/routes/album.router));
-
-// // media route
-// app.use('/media', require('./src/routes/media.routes'));
-
-// // Contact routes
-app.use('/contact', require('./src/routes/contact.routes'))
-
-// test de l'api
-app.get('/', (req, res) => res.send(`Hello World - v${version}`))
+const ENV = process.env.ENV || 'dev'
+const port = process.env.PORT || 3030
 
 async function start() {
   try {
-    await initDatabase()
-    await sequelize.authenticate()
-    console.log(`[${ENV}] Connexion DB établie avec succès.`)
-    console.log(`Server v${version} listening on port ${port}`)
+    await Promise.all([initDatabase(), sequelize.authenticate()])
+    console.log(
+      `Connexion a la base de donnée établie avec succès, Server v${version}, mode : [${ENV}]`
+    )
   } catch (error) {
     console.error('impossible de se connecter a la bdd:', error)
     process.exit(1)

@@ -55,7 +55,8 @@ Contact.init({
         
 }, {
     sequelize,
-    tableName: 'contacts', // Le nom de la table dans la BDD
-    modelName: 'Contact' // Le nom du modèle créé ci-dessus
+    tableName: 'contact',
+    modelName: 'Contact',
+    timestamps: true,
 });
 module.exports = Contact;

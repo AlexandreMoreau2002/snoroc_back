@@ -1,8 +1,9 @@
-const mysql = require("mysql2/promise");
-const configs = require("./config");
+require('./loadEnv')
+const mysql = require('mysql2/promise')
+const configs = require('./config')
 
-const ENV = process.env.ENV || "dev";
-let initPromise = null;
+const ENV = process.env.ENV || 'dev'
+let initPromise = null
 
 function getDbConfig() {
   const fallback = configs[ENV] || configs.dev || {};
@@ -37,7 +38,6 @@ async function initDatabase() {
 
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
     await connection.end();
-    console.log(`[DB] Base '${database}' OK (${host}:${port}).`);
   })();
 
   return initPromise;

@@ -1,0 +1,133 @@
+### Signup (Créer un utilisateur)
+POST {{baseUrl}}/user/signup
+Content-Type: application/json
+
+{
+  "email": "pricedelu@gmail.com",
+  "password": "Password123",
+  "firstname": "John",
+  "lastname": "Doe",
+  "userPhone": "0769666382",
+  "civility": "Mr",
+  "newsletter": false
+}
+
+### Login (Se connecter)
+POST {{baseUrl}}/user/login
+Content-Type: application/json
+
+{
+  "email": "pricedelu301@gmail.com",
+  "password": "Password123"
+}
+
+### Verify Email (Vérifier l'email de l'utilisateur)
+POST {{baseUrl}}/user/verify-email
+Content-Type: application/json
+
+{
+  "email": "pricedelu301@gmail.com",
+  "emailVerificationToken": "336964"
+}
+
+### Gestion des informations utilisateur
+
+### Get profile (Récupérer son profil)
+GET {{baseUrl}}/user/profile
+Content-Type: application/json
+Authorization: Bearer {{jwt}}
+
+### Update user (Mettre à jour un utilisateur)
+PATCH {{baseUrl}}/user/update
+Content-Type: application/json
+Authorization: Bearer {{jwt}}
+
+{
+  "id": 1,
+  "firstname": "Pierre"
+}
+
+### Delete user (Supprimer un utilisateur)
+DELETE {{baseUrl}}/user/delete
+Content-Type: application/json
+Authorization: Bearer {{jwt}}
+
+{
+  "id": 1
+}
+
+### Update password (Mettre à jour le mot de passe)
+PATCH {{baseUrl}}/user/update-password
+Content-Type: application/json
+Authorization: Bearer {{jwt}}
+
+{
+  "id": 1,
+  "currentPassword": "Password123",
+  "newPassword": "NewPassword123"
+}
+
+
+### Gestion des rôles et permissions
+
+### Get user by ID (Récupérer un utilisateur par ID)
+GET {{baseUrl}}/user/id/1
+Content-Type: application/json
+Authorization: Bearer {{jwt}}
+
+### Pour update le rôle d'un utilisateur (Passer en admin ou le retirer)
+PATCH {{baseUrl}}/user/update-role/2
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "isAdmin": false
+}
+
+### Notifications et mots de passe
+
+### Update newsletter (Mettre à jour l'abonnement à la newsletter)
+PATCH {{baseUrl}}/user/update-newsletter
+Content-Type: application/json
+
+{
+  "id": 1,
+  "newsletter": true
+}
+
+### Forgot Password (Demande de réinitialisation du mot de passe)
+POST {{baseUrl}}/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "pricedelu@gmail.com"
+}
+
+### Reset Password (Réinitialiser le mot de passe)
+POST {{baseUrl}}/user/reset-password
+Content-Type: application/json
+
+{
+  "email": "pricedelu@gmail.com",
+  "resetToken": "156950",
+  "newPassword": "NouveauPassword123"
+}
+
+### Tests généraux et vérification des routes
+
+### Test Connection (Tester la connexion à l'API)
+GET {{baseUrl}}
+
+### Test /user (Tester la route principale user)
+GET {{baseUrl}}/user
+
+### Test de la route de test sans logique
+GET {{baseUrl}}/user/test
+
+### Test /alors (Tester une route simple)
+GET {{baseUrl}}/user/alors
+
+### Test de la route utilisateur standard
+GET {{baseUrl}}/user/admin-only
+Content-Type: application/json
+Authorization: Bearer {{jwt}}

@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('../../config/loadEnv')
 const { sendEmail } = require('../../config/nodemailer.config')
 const {
   emailDataVerification,
