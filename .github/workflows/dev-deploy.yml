@@ -90,7 +90,11 @@ jobs:
             set +x
             {
               echo "EMAIL=${{ vars.EMAIL }}"
-              echo "EMAIL_PASSWORD=${{ vars.EMAIL_PASSWORD }}"
+              echo "EMAIL_USER=${{ vars.EMAIL_USER }}"
+              echo "EMAIL_PASS=${{ vars.EMAIL_PASS }}"
+              echo "EMAIL_SMTP_HOST=${{ vars.EMAIL_SMTP_HOST }}"
+              echo "EMAIL_SMTP_PORT=${{ vars.EMAIL_SMTP_PORT }}"
+              echo "EMAIL_SMTP_SECURE=${{ vars.EMAIL_SMTP_SECURE }}"
               echo "DB_HOST=${{ vars.DB_HOST }}"
               echo "DB_PORT=${{ vars.DB_PORT }}"
               echo "DB_USER=${{ vars.DB_USER }}"
