@@ -106,6 +106,7 @@ jobs:
               echo "ENV=${{ vars.ENV }}"
               echo "BASE_URL=${{ vars.BASE_URL }}"
               echo "FRONTEND_URL=${{ vars.FRONTEND_URL }}"
+              echo "UPLOADS_DIR=${{ vars.UPLOADS_DIR}}"
             } > "$PROJECT_DIR/.env"
 
             set -x
