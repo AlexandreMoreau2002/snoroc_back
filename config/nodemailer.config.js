@@ -20,8 +20,6 @@ async function sendEmail({ from, to, subject, text, html }) {
           },
         ],
       });
-
-    console.log("Mailjet API: SUCCESS");
     return { success: true, info: result.body };
   } catch (error) {
     console.log("Mailjet API: FAIL", error);
