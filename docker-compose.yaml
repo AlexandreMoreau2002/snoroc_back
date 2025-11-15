@@ -37,8 +37,6 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    volumes:
-      - .:/app
     restart: always
     networks:
       - snoroc_net
