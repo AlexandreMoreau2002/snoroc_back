@@ -10,6 +10,7 @@ exports.Create = async (req, res) => {
     const { title, content } = req.body
     console.log('[news::create] body:', req.body)
     console.log('[news::create] file:', req.file)
+    console.log('[news::create] savedUploadName:', req.savedUploadName)
 
     if (!title || !content || !req.file) {
       return res.status(400).json({
@@ -138,6 +139,7 @@ exports.Update = async (req, res) => {
     console.log('[news::update] params.id:', id)
     console.log('[news::update] body:', req.body)
     console.log('[news::update] file:', req.file)
+    console.log('[news::update] savedUploadName:', req.savedUploadName)
 
     if (!req.user || !req.user.userId) {
       return res.status(401).json({

@@ -10,6 +10,12 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+// Log access to static uploads to debug broken links
+app.use('/uploads', (req, res, next) => {
+  const filePath = path.join(__dirname, 'public/uploads', req.path)
+  console.log('[static uploads] request:', req.method, req.originalUrl, '| resolved:', filePath)
+  next()
+})
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
 
 app.use('/user', require('./src/routes/user.routes'))
