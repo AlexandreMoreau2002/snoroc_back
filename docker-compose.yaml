@@ -38,8 +38,6 @@ services:
       database:
         condition: service_healthy
     restart: always
-    volumes:
-      - uploads_data:/app/public/uploads
     networks:
       - snoroc_net
 
