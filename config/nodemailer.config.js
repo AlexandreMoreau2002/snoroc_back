@@ -1,14 +1,21 @@
-const Mailjet = require('node-mailjet');
+const Mailjet = require('node-mailjet')
 
-const mailjet = Mailjet.apiConnect(
-  process.env.EMAIL_USER, // API KEY
-  process.env.EMAIL_PASS  // API SECRET
-);
+const apiKey = process.env.EMAIL_USER
+const apiSecret = process.env.EMAIL_PASS
+
+let mailjet = null
+if (apiKey && apiSecret) {
+  mailjet = Mailjet.apiConnect(apiKey, apiSecret)
+}
 
 async function sendEmail({ from, to, subject, text, html }) {
+  if (!mailjet) {
+    return { success: false, error: new Error('Service mail non configuré') }
+  }
+
   try {
     const result = await mailjet
-      .post("send", { version: "v3.1" })
+      .post('send', { version: 'v3.1' })
       .request({
         Messages: [
           {
@@ -19,12 +26,11 @@ async function sendEmail({ from, to, subject, text, html }) {
             HTMLPart: html,
           },
         ],
-      });
-    return { success: true, info: result.body };
+      })
+    return { success: true, info: result.body }
   } catch (error) {
-    console.log("Mailjet API: FAIL", error);
-    return { success: false, error };
+    return { success: false, error }
   }
 }
 
-module.exports = { sendEmail };
+module.exports = { sendEmail }
