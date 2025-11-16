@@ -36,7 +36,6 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     volumes:
       - ${UPLOADS_DIR}:/app/public/uploads
-      - ${MOUNT_SOURCE:?omitted}:${MOUNT_TARGET:?omitted}${MOUNT_ENABLED}
     depends_on:
       database:
         condition: service_healthy

@@ -107,9 +107,6 @@ jobs:
               echo "BASE_URL=${{ vars.BASE_URL }}"
               echo "FRONTEND_URL=${{ vars.FRONTEND_URL }}"
               echo "UPLOADS_DIR=${{ vars.UPLOADS_DIR}}"
-              echo "MOUNT_ENABLED=off"
-              echo "MOUNT_SOURCE="
-              echo "MOUNT_TARGET="
             } > "$PROJECT_DIR/.env"
 
             set -x
