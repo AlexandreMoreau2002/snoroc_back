@@ -18,15 +18,10 @@ const cleanFilename = (originalname) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dest = 'public/uploads/'
-    console.log('[upload] destination hook | field:', file?.fieldname, '| mimetype:', file?.mimetype, '| dest:', dest)
     cb(null, 'public/uploads/')
   },
   filename: (req, file, cb) => {
-    console.log('[upload] filename hook | original name (latin1):', file?.originalname)
     const uniqueName = `${Date.now()}-${cleanFilename(file.originalname)}`
-    console.log('[upload] filename hook | stored name:', uniqueName)
-    req.savedUploadName = uniqueName
     cb(null, uniqueName)
   },
 })

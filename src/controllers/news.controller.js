@@ -8,9 +8,6 @@ const { notifNewsletterNews } = require('../services/email/newNews.service')
 exports.Create = async (req, res) => {
   try {
     const { title, content } = req.body
-    console.log('[news::create] body:', req.body)
-    console.log('[news::create] file:', req.file)
-    console.log('[news::create] savedUploadName:', req.savedUploadName)
 
     if (!title || !content || !req.file) {
       return res.status(400).json({
@@ -30,7 +27,6 @@ exports.Create = async (req, res) => {
     const thumbnailUrl = `${req.protocol}://${req.get(
       'host'
     )}/uploads/${encodeURIComponent(req.file.filename)}`
-    console.log('[news::create] thumbnailUrl:', thumbnailUrl)
 
     const news = await News.create({
       authorId,
@@ -38,8 +34,6 @@ exports.Create = async (req, res) => {
       content,
       thumbnail: thumbnailUrl,
     })
-    console.log('[news::create] news created id:', news.id)
-
     const users = await User.findAll({
       attributes: ['email'],
       where: { newsletter: true },
@@ -136,10 +130,6 @@ exports.Update = async (req, res) => {
   try {
     const { id } = req.params
     const { title, content } = req.body
-    console.log('[news::update] params.id:', id)
-    console.log('[news::update] body:', req.body)
-    console.log('[news::update] file:', req.file)
-    console.log('[news::update] savedUploadName:', req.savedUploadName)
 
     if (!req.user || !req.user.userId) {
       return res.status(401).json({
