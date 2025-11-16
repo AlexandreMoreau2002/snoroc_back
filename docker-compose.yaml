@@ -35,7 +35,7 @@ services:
       BASE_URL: ${BASE_URL:-http://localhost:3030}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     volumes:
-      - .:/app
+      - ${MOUNT_SOURCE}
       - ${UPLOADS_DIR}:/app/public/uploads
     depends_on:
       database:
