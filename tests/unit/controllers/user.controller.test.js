@@ -368,11 +368,11 @@ describe('User Controller', () => {
       )
     })
 
-    it('retourne 200 et un token en cas de succès', async () => {
-      const user = {
-        id: 3,
-        firstname: 'Jane',
-        lastname: 'Doe',
+      it('retourne 200 et un token en cas de succès', async () => {
+        const user = {
+          id: 3,
+          firstname: 'Jane',
+          lastname: 'Doe',
         email: baseUserData.email,
         isAdmin: false,
         password: 'stored',
@@ -389,11 +389,29 @@ describe('User Controller', () => {
       expect(mockComparePassword).toHaveBeenCalledWith('Password1', 'stored')
       expect(mockUpdate).toHaveBeenCalledWith({ accessToken: 'jwt-login' })
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ accessToken: 'jwt-login', message: 'Vous êtes désormais connecté.' })
-      )
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ accessToken: 'jwt-login', message: 'Vous êtes désormais connecté.' })
+        )
+      })
+
+      it('renvoie 500 quand une erreur inattendue survient', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const req = { body: { email: baseUserData.email, password: 'Password1' } }
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db failure'))
+
+        await Login(req, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+          })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('Update', () => {
     it('retourne 400 si id manquant ou invalide', async () => {
@@ -408,18 +426,31 @@ describe('User Controller', () => {
       )
     })
 
-    it('retourne 404 si utilisateur introuvable', async () => {
-      const req = { body: { id: 1, email: baseUserData.email } }
-      const res = createRes()
-      mockFindOne.mockResolvedValue(null)
+      it('retourne 404 si utilisateur introuvable', async () => {
+        const req = { body: { id: 1, email: baseUserData.email } }
+        const res = createRes()
+        mockFindOne.mockResolvedValue(null)
 
       await Update(req, res)
 
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Utilisateur introuvable.' })
-      )
-    })
+        expect(res.status).toHaveBeenCalledWith(404)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Utilisateur introuvable.' })
+        )
+      })
+
+      it('retourne 400 pour un nom invalide', async () => {
+        const req = { body: { id: 1, lastName: 'Doe123' } }
+        const res = createRes()
+        mockFindOne.mockResolvedValue({ id: 1 })
+
+        await Update(req, res)
+
+        expect(res.status).toHaveBeenCalledWith(400)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Le nom doit contenir uniquement des lettres.' })
+        )
+      })
 
     it('retourne 400 pour un email invalide', async () => {
       const req = { body: { id: 1, email: 'bad-email' } }
@@ -461,11 +492,11 @@ describe('User Controller', () => {
       )
     })
 
-    it('met à jour les données utilisateur en cas de succès', async () => {
-      const user = {
-        id: 1,
-        firstName: 'Old',
-        lastName: 'Name',
+      it('met à jour les données utilisateur en cas de succès', async () => {
+        const user = {
+          id: 1,
+          firstName: 'Old',
+          lastName: 'Name',
         email: baseUserData.email,
         phoneNumber: '+33600000000',
         update: mockUpdate,
@@ -491,9 +522,26 @@ describe('User Controller', () => {
         email: 'new@example.com',
         phoneNumber: '+33611111111',
       })
-      expect(res.status).toHaveBeenCalledWith(200)
+        expect(res.status).toHaveBeenCalledWith(200)
+      })
+
+      it('renvoie 500 lorsque la mise à jour échoue', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mockFindOne.mockRejectedValue(new Error('db error'))
+        const res = createRes()
+
+        await Update({ body: { id: 1, email: baseUserData.email } }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+          })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('Delete', () => {
     it('retourne 400 si id manquant', async () => {
@@ -521,20 +569,39 @@ describe('User Controller', () => {
       )
     })
 
-    it('supprime un utilisateur en cas de succès', async () => {
-      const req = { body: { id: 3 } }
-      const res = createRes()
-      mockFindOne.mockResolvedValue({ id: 3, destroy: mockDestroy })
+      it('supprime un utilisateur en cas de succès', async () => {
+        const req = { body: { id: 3 } }
+        const res = createRes()
+        mockFindOne.mockResolvedValue({ id: 3, destroy: mockDestroy })
 
-      await Delete(req, res)
+        await Delete(req, res)
 
-      expect(mockDestroy).toHaveBeenCalled()
-      expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: "L'utilisateur a été supprimé avec succès." })
-      )
+        expect(mockDestroy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(200)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: "L'utilisateur a été supprimé avec succès." })
+        )
+      })
+
+      it('renvoie 500 si la suppression échoue', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const req = { body: { id: 4 } }
+        const res = createRes()
+        mockFindOne.mockResolvedValue({
+          id: 4,
+          destroy: jest.fn().mockRejectedValue(new Error('db error')),
+        })
+
+        await Delete(req, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Une erreur interne est survenue.' })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('GetById', () => {
     it('retourne 400 pour un id invalide', async () => {
@@ -562,19 +629,35 @@ describe('User Controller', () => {
       )
     })
 
-    it('retourne les données utilisateur quand elles sont trouvées', async () => {
-      const req = { params: { id: 6 } }
-      const res = createRes()
-      mockFindOne.mockResolvedValue({ id: 6, firstname: 'Jane' })
+      it('retourne les données utilisateur quand elles sont trouvées', async () => {
+        const req = { params: { id: 6 } }
+        const res = createRes()
+        mockFindOne.mockResolvedValue({ id: 6, firstname: 'Jane' })
 
       await GetById(req, res)
 
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ id: 6 }) })
-      )
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ data: expect.objectContaining({ id: 6 }) })
+        )
+      })
+
+      it('renvoie 500 si la récupération échoue', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const req = { params: { id: 6 } }
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await GetById(req, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Une erreur interne est survenue.' })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('GetProfile', () => {
     it('retourne 401 si userId est absent', async () => {
@@ -606,21 +689,39 @@ describe('User Controller', () => {
       )
     })
 
-    it('retourne le profil quand il existe', async () => {
-      const res = createRes()
-      mockFindOne.mockResolvedValue({ id: 7, firstname: 'Profile' })
+      it('retourne le profil quand il existe', async () => {
+        const res = createRes()
+        mockFindOne.mockResolvedValue({ id: 7, firstname: 'Profile' })
 
-      await require('../../../src/controllers/user.controller').GetProfile(
-        { user: { userId: 7 } },
-        res
-      )
+        await require('../../../src/controllers/user.controller').GetProfile(
+          { user: { userId: 7 } },
+          res
+        )
 
-      expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ id: 7 }) })
-      )
+        expect(res.status).toHaveBeenCalledWith(200)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ data: expect.objectContaining({ id: 7 }) })
+        )
+      })
+
+      it('gère les erreurs inattendues lors de la récupération de profil', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await require('../../../src/controllers/user.controller').GetProfile(
+          { user: { userId: 7 } },
+          res
+        )
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Une erreur interne est survenue.' })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('ForgotPassword', () => {
     const ForgotPassword = require('../../../src/controllers/user.controller').ForgotPassword
@@ -659,20 +760,37 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200)
     })
 
-    it("retourne 500 si l'envoi d'email échoue", async () => {
-      const res = createRes()
-      const user = { save: mockSave }
-      mockFindOne.mockResolvedValue(user)
-      mockSendEmail.mockResolvedValue({ success: false })
+      it("retourne 500 si l'envoi d'email échoue", async () => {
+        const res = createRes()
+        const user = { save: mockSave }
+        mockFindOne.mockResolvedValue(user)
+        mockSendEmail.mockResolvedValue({ success: false })
 
       await ForgotPassword({ body: { email: baseUserData.email } }, res)
 
       expect(res.status).toHaveBeenCalledWith(500)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: "Échec de l'envoi de l'email." })
-      )
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: "Échec de l'envoi de l'email." })
+        )
+      })
+
+      it('renvoie 500 en cas derreur inattendue', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await ForgotPassword({ body: { email: baseUserData.email } }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+          })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('ResetPassword', () => {
     const ResetPassword = require('../../../src/controllers/user.controller').ResetPassword
@@ -710,11 +828,11 @@ describe('User Controller', () => {
       )
     })
 
-    it('met à jour le mot de passe quand le token est valide', async () => {
-      const res = createRes()
-      const user = {
-        passwordResetToken: 'token',
-        passwordResetTokenExpires: new Date(Date.now() + 10 * 60 * 1000),
+      it('met à jour le mot de passe quand le token est valide', async () => {
+        const res = createRes()
+        const user = {
+          passwordResetToken: 'token',
+          passwordResetTokenExpires: new Date(Date.now() + 10 * 60 * 1000),
         password: 'old',
         update: mockUpdate,
       }
@@ -727,11 +845,30 @@ describe('User Controller', () => {
       expect(mockUpdate).toHaveBeenCalledWith({
         password: 'new-hash',
         passwordResetToken: null,
-        passwordResetTokenExpires: null,
+          passwordResetTokenExpires: null,
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
       })
-      expect(res.status).toHaveBeenCalledWith(200)
+
+      it('renvoie 500 si une erreur survient pendant la réinitialisation', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await ResetPassword({
+          body: { email: baseUserData.email, resetToken: 'token', newPassword: 'Password1A' },
+        }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+          })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('UpdateNewsletter', () => {
     const UpdateNewsletter = require('../../../src/controllers/user.controller').UpdateNewsletter
@@ -752,18 +889,33 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(400)
     })
 
-    it('met à jour le flag newsletter', async () => {
-      const res = createRes()
-      const user = { id: 1, save: mockSave, newsletter: false }
-      mockFindOne.mockResolvedValue(user)
+      it('met à jour le flag newsletter', async () => {
+        const res = createRes()
+        const user = { id: 1, save: mockSave, newsletter: false }
+        mockFindOne.mockResolvedValue(user)
 
-      await UpdateNewsletter({ body: { id: 1, newsletter: true } }, res)
+        await UpdateNewsletter({ body: { id: 1, newsletter: true } }, res)
 
-      expect(mockSave).toHaveBeenCalled()
-      expect(user.newsletter).toBe(true)
-      expect(res.status).toHaveBeenCalledWith(200)
+        expect(mockSave).toHaveBeenCalled()
+        expect(user.newsletter).toBe(true)
+        expect(res.status).toHaveBeenCalledWith(200)
+      })
+
+      it('retourne 500 si une erreur interne survient', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await UpdateNewsletter({ body: { id: 1, newsletter: true } }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Une erreur interne est survenue.' })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('UpdatePassword', () => {
     const UpdatePassword = require('../../../src/controllers/user.controller').UpdatePassword
@@ -792,19 +944,34 @@ describe('User Controller', () => {
       )
     })
 
-    it('met à jour le mot de passe quand la vérification réussit', async () => {
-      const res = createRes()
-      mockFindOne.mockResolvedValue({ id: 1, password: 'hashed', update: mockUpdate })
-      mockComparePassword.mockResolvedValue(true)
-      mockEncryptPassword.mockResolvedValue('new-hash')
+      it('met à jour le mot de passe quand la vérification réussit', async () => {
+        const res = createRes()
+        mockFindOne.mockResolvedValue({ id: 1, password: 'hashed', update: mockUpdate })
+        mockComparePassword.mockResolvedValue(true)
+        mockEncryptPassword.mockResolvedValue('new-hash')
 
       await UpdatePassword({ body: { id: 1, currentPassword: 'old', newPassword: 'Password1A' } }, res)
 
-      expect(mockEncryptPassword).toHaveBeenCalledWith('Password1A')
-      expect(mockUpdate).toHaveBeenCalledWith({ password: 'new-hash' })
-      expect(res.status).toHaveBeenCalledWith(200)
+        expect(mockEncryptPassword).toHaveBeenCalledWith('Password1A')
+        expect(mockUpdate).toHaveBeenCalledWith({ password: 'new-hash' })
+        expect(res.status).toHaveBeenCalledWith(200)
+      })
+
+      it('renvoie 500 en cas derreur lors de la mise à jour du mot de passe', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindOne.mockRejectedValue(new Error('db error'))
+
+        await UpdatePassword({ body: { id: 1, currentPassword: 'old', newPassword: 'Password1A' } }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Une erreur interne est survenue, veuillez réessayer plus tard.' })
+        )
+        consoleSpy.mockRestore()
+      })
     })
-  })
 
   describe('UpdateUserRole', () => {
     const UpdateUserRole = require('../../../src/controllers/user.controller').UpdateUserRole
@@ -826,14 +993,29 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(404)
     })
 
-    it('met à jour le rôle administrateur', async () => {
-      const res = createRes()
-      mockFindByPk.mockResolvedValue({ id: 3, isAdmin: false, update: mockUpdate })
+      it('met à jour le rôle administrateur', async () => {
+        const res = createRes()
+        mockFindByPk.mockResolvedValue({ id: 3, isAdmin: false, update: mockUpdate })
 
-      await UpdateUserRole({ params: { id: 3 }, body: { isAdmin: true } }, res)
+        await UpdateUserRole({ params: { id: 3 }, body: { isAdmin: true } }, res)
 
-      expect(mockUpdate).toHaveBeenCalledWith({ isAdmin: true })
-      expect(res.status).toHaveBeenCalledWith(200)
+        expect(mockUpdate).toHaveBeenCalledWith({ isAdmin: true })
+        expect(res.status).toHaveBeenCalledWith(200)
+      })
+
+      it('retourne 500 si la recherche utilisateur échoue', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        mockFindByPk.mockRejectedValue(new Error('db error'))
+
+        await UpdateUserRole({ params: { id: 3 }, body: { isAdmin: true } }, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({ message: "Une erreur est survenue lors de la mise à jour du rôle." })
+        )
+        consoleSpy.mockRestore()
+      })
     })
   })
-})

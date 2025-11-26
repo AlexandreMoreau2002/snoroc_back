@@ -105,11 +105,11 @@ describe('News Controller', () => {
       })
     })
 
-    it('envoie des emails aux abonnés newsletter et capture les erreurs', async () => {
-      const res = createRes()
-      const news = { id: 5, title: 'Titre', content: 'Corps', thumbnail: 'url' }
-      News.create.mockResolvedValue(news)
-      User.findAll.mockResolvedValue([{ email: 'user@example.com' }])
+      it('envoie des emails aux abonnés newsletter et capture les erreurs', async () => {
+        const res = createRes()
+        const news = { id: 5, title: 'Titre', content: 'Corps', thumbnail: 'url' }
+        News.create.mockResolvedValue(news)
+        User.findAll.mockResolvedValue([{ email: 'user@example.com' }])
       notifNewsletterNews.mockReturnValue({ to: 'user@example.com' })
       sendEmail.mockRejectedValue(new Error('smtp'))
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
@@ -130,27 +130,83 @@ describe('News Controller', () => {
         error: false,
         message: 'Actualité créée avec succès et notifications envoyées.',
       })
-      expect(consoleSpy).toHaveBeenCalled()
-      consoleSpy.mockRestore()
-    })
-  })
+        expect(consoleSpy).toHaveBeenCalled()
+        consoleSpy.mockRestore()
+      })
 
-  describe('GetAll', () => {
-    it('renvoie la liste complète des actualités', async () => {
-      const res = createRes()
-      const newsList = [{ id: 1 }, { id: 2 }]
-      News.findAll.mockResolvedValue(newsList)
+      it('journalise une erreur quand sendEmail retourne un échec', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        const res = createRes()
+        const news = { id: 6, title: 'Titre', content: 'Corps', thumbnail: 'url' }
+        News.create.mockResolvedValue(news)
+        User.findAll.mockResolvedValue([{ email: 'user@example.com' }])
+        notifNewsletterNews.mockReturnValue({ to: 'user@example.com' })
+        sendEmail.mockResolvedValue({ success: false, error: 'smtp error' })
+        const req = {
+          body: { title: 'Titre', content: 'Corps' },
+          file: { filename: 'image.png' },
+          user: { userId: 4 },
+          protocol: 'https',
+          get: jest.fn().mockReturnValue('snoroc.test'),
+        }
+
+        await Create(req, res)
+
+        expect(consoleSpy).toHaveBeenCalled()
+        expect(res.status).toHaveBeenCalledWith(201)
+        consoleSpy.mockRestore()
+      })
+
+      it('retourne 500 si la création échoue', async () => {
+        const res = createRes()
+        News.create.mockRejectedValue(new Error('db issue'))
+        const req = {
+          body: { title: 'Titre', content: 'Corps' },
+          file: { filename: 'image.png' },
+          user: { userId: 4 },
+          protocol: 'https',
+          get: jest.fn().mockReturnValue('snoroc.test'),
+        }
+
+        await Create(req, res)
+
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith({
+          error: true,
+          message: 'Une erreur interne est survenue.',
+        })
+      })
+    })
+
+    describe('GetAll', () => {
+      it('renvoie la liste complète des actualités', async () => {
+        const res = createRes()
+        const newsList = [{ id: 1 }, { id: 2 }]
+        News.findAll.mockResolvedValue(newsList)
 
       await GetAll({}, res)
 
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith({
-        error: false,
-        message: 'Les actualités ont bien été récupérés',
-        data: newsList,
+        expect(res.json).toHaveBeenCalledWith({
+          error: false,
+          message: 'Les actualités ont bien été récupérés',
+          data: newsList,
+        })
+      })
+
+      it('renvoie 500 en cas derreur lors de la récupération', async () => {
+        const res = createRes()
+        News.findAll.mockRejectedValue(new Error('db'))
+
+        await GetAll({}, res)
+
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith({
+          error: true,
+          message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+        })
       })
     })
-  })
 
   describe('GetById', () => {
     it('retourne 400 si id invalide', async () => {
@@ -174,10 +230,10 @@ describe('News Controller', () => {
       })
     })
 
-    it('retourne 200 avec la ressource', async () => {
-      const res = createRes()
-      const news = { id: 3 }
-      News.findOne.mockResolvedValue(news)
+      it('retourne 200 avec la ressource', async () => {
+        const res = createRes()
+        const news = { id: 3 }
+        News.findOne.mockResolvedValue(news)
 
       await GetById({ params: { id: '3' } }, res)
 
@@ -185,10 +241,23 @@ describe('News Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         error: false,
         message: "L'actualité a été récupérée.",
-        data: news,
+          data: news,
+        })
+      })
+
+      it('renvoie 500 si une erreur inattendue survient', async () => {
+        const res = createRes()
+        News.findOne.mockRejectedValue(new Error('db'))
+
+        await GetById({ params: { id: '2' } }, res)
+
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith({
+          error: true,
+          message: 'Une erreur interne est survenue, veuillez réessayer plus tard.',
+        })
       })
     })
-  })
 
   describe('Update', () => {
     it('refuse si utilisateur non authentifié', async () => {
@@ -224,11 +293,11 @@ describe('News Controller', () => {
       })
     })
 
-    it('met à jour la miniature et supprime l ancienne', async () => {
-      const res = createRes()
-      const update = jest.fn().mockResolvedValue({ id: 12, thumbnail: 'new' })
-      News.findOne.mockResolvedValue({
-        id: 12,
+      it('met à jour la miniature et supprime l ancienne', async () => {
+        const res = createRes()
+        const update = jest.fn().mockResolvedValue({ id: 12, thumbnail: 'new' })
+        News.findOne.mockResolvedValue({
+          id: 12,
         title: 'Old',
         content: 'Content',
         thumbnail: 'http://localhost/uploads/old.png',
@@ -254,13 +323,26 @@ describe('News Controller', () => {
         updatedAt: expect.any(Date),
       })
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith({
-        error: false,
-        message: 'Actualité mise à jour avec succès.',
-        data: { id: 12, thumbnail: 'new' },
+        expect(res.json).toHaveBeenCalledWith({
+          error: false,
+          message: 'Actualité mise à jour avec succès.',
+          data: { id: 12, thumbnail: 'new' },
+        })
+      })
+
+      it('retourne 500 en cas derreur serveur pendant la mise à jour', async () => {
+        const res = createRes()
+        News.findOne.mockRejectedValue(new Error('db error'))
+
+        await Update({ params: { id: '1' }, body: {}, user: { userId: 1 } }, res)
+
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith({
+          error: true,
+          message: 'Une erreur interne est survenue.',
+        })
       })
     })
-  })
 
   describe('Delete', () => {
     it('retourne 400 si id manquant', async () => {
@@ -284,11 +366,11 @@ describe('News Controller', () => {
       })
     })
 
-    it('supprime la miniature si elle existe', async () => {
-      const res = createRes()
-      News.findOne.mockResolvedValue({
-        id: 4,
-        thumbnail: 'http://localhost/uploads/old.png',
+      it('supprime la miniature si elle existe', async () => {
+        const res = createRes()
+        News.findOne.mockResolvedValue({
+          id: 4,
+          thumbnail: 'http://localhost/uploads/old.png',
         destroy: jest.fn().mockResolvedValue(),
       })
       fs.existsSync.mockReturnValue(true)
@@ -297,10 +379,27 @@ describe('News Controller', () => {
 
       expect(fs.unlinkSync).toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith({
-        error: false,
-        message: "L'actualité a été supprimée avec succès.",
+        expect(res.json).toHaveBeenCalledWith({
+          error: false,
+          message: "L'actualité a été supprimée avec succès.",
+        })
+      })
+
+      it('retourne 500 en cas derreur lors de la suppression', async () => {
+        const res = createRes()
+        News.findOne.mockResolvedValue({
+          id: 4,
+          thumbnail: null,
+          destroy: jest.fn().mockRejectedValue(new Error('destroy failed')),
+        })
+
+        await Delete({ params: { id: '4' } }, res)
+
+        expect(res.status).toHaveBeenCalledWith(500)
+        expect(res.json).toHaveBeenCalledWith({
+          error: true,
+          message: 'Une erreur interne est survenue.',
+        })
       })
     })
   })
-})

@@ -120,6 +120,40 @@ describe('Contact Controller', () => {
       )
     })
 
+    it("enregistre le message et capture les exceptions d'envoi d'email", async () => {
+      process.env.EMAIL = 'company@example.com'
+      const mockContact = {
+        id: 2,
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: null,
+        subject: 'Sujet',
+        message: 'Bonjour',
+      }
+      Contact.create.mockResolvedValue({ get: () => mockContact })
+      buildContactEmailNotification.mockReturnValue({ to: 'company@example.com' })
+      sendEmail.mockRejectedValue(new Error('smtp down'))
+
+      const req = { body: { ...mockContact } }
+      const res = createRes()
+
+      await Create(req, res)
+
+      expect(buildContactEmailNotification).toHaveBeenCalledWith(
+        [process.env.EMAIL],
+        mockContact
+      )
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      expect(successResponse).toHaveBeenCalledWith(
+        res,
+        202,
+        'Message enregistré. Notification email indisponible.',
+        mockContact,
+        null,
+        { emailWarning: expect.any(String) }
+      )
+    })
+
     it("enregistre le message sans essayer d'envoyer d'email si aucune adresse d'entreprise n'est configurée", async () => {
       process.env.EMAIL = ''
       const mockContact = {
@@ -162,11 +196,11 @@ describe('Contact Controller', () => {
     })
   })
 
-  describe('GetAll', () => {
-    it('retourne toutes les entrées ordonnées', async () => {
-      const contacts = [{ id: 1 }, { id: 2 }]
-      Contact.findAll.mockResolvedValue(contacts)
-      const res = createRes()
+    describe('GetAll', () => {
+      it('retourne toutes les entrées ordonnées', async () => {
+        const contacts = [{ id: 1 }, { id: 2 }]
+        Contact.findAll.mockResolvedValue(contacts)
+        const res = createRes()
 
       await GetAll({}, res)
 
@@ -174,16 +208,29 @@ describe('Contact Controller', () => {
         order: [['createdAt', 'DESC']],
         raw: true,
       })
-      expect(successResponse).toHaveBeenCalledWith(
-        res,
-        200,
-        'Liste des messages récupérée avec succès.',
-        contacts
-      )
-    })
-  })
+        expect(successResponse).toHaveBeenCalledWith(
+          res,
+          200,
+          'Liste des messages récupérée avec succès.',
+          contacts
+        )
+      })
 
-  describe('GetById', () => {
+      it('retourne une erreur interne en cas de problème base de données', async () => {
+        Contact.findAll.mockRejectedValue(new Error('db error'))
+        const res = createRes()
+
+        await GetAll({}, res)
+
+        expect(consoleErrorSpy).toHaveBeenCalled()
+        expect(internalErrorResponse).toHaveBeenCalledWith(
+          res,
+          'Une erreur interne est survenue. Impossible de récupérer les messages.'
+        )
+      })
+    })
+
+    describe('GetById', () => {
     it("retourne une erreur de validation si l'identifiant est invalide", async () => {
       const res = createRes()
 
@@ -204,25 +251,38 @@ describe('Contact Controller', () => {
       expect(notFoundResponse).toHaveBeenCalledWith(res, 'Message de contact introuvable.')
     })
 
-    it('marque un message comme lu et le renvoie', async () => {
-      const save = jest.fn()
-      const contact = { id: 3, hasBeenRead: false, save }
-      Contact.findByPk.mockResolvedValue(contact)
-      const res = createRes()
+      it('marque un message comme lu et le renvoie', async () => {
+        const save = jest.fn()
+        const contact = { id: 3, hasBeenRead: false, save }
+        Contact.findByPk.mockResolvedValue(contact)
+        const res = createRes()
 
       await GetById({ params: { id: '3' } }, res)
 
       expect(save).toHaveBeenCalledTimes(1)
       expect(successResponse).toHaveBeenCalledWith(
         res,
-        200,
-        'Message récupéré avec succès.',
-        contact
-      )
-    })
-  })
+          200,
+          'Message récupéré avec succès.',
+          contact
+        )
+      })
 
-  describe('Update', () => {
+      it('capture les exceptions et renvoie une erreur interne', async () => {
+        Contact.findByPk.mockRejectedValue(new Error('db exploded'))
+        const res = createRes()
+
+        await GetById({ params: { id: '4' } }, res)
+
+        expect(consoleErrorSpy).toHaveBeenCalled()
+        expect(internalErrorResponse).toHaveBeenCalledWith(
+          res,
+          'Une erreur interne est survenue. Impossible de récupérer le message.'
+        )
+      })
+    })
+
+    describe('Update', () => {
     it('retourne une erreur de validation si hasBeenRead est absent', async () => {
       const res = createRes()
 
@@ -245,11 +305,11 @@ describe('Contact Controller', () => {
       )
     })
 
-    it('met à jour le statut de lecture', async () => {
-      const save = jest.fn()
-      const contact = { id: 7, hasBeenRead: false, save }
-      Contact.findByPk.mockResolvedValue(contact)
-      const res = createRes()
+      it('met à jour le statut de lecture', async () => {
+        const save = jest.fn()
+        const contact = { id: 7, hasBeenRead: false, save }
+        Contact.findByPk.mockResolvedValue(contact)
+        const res = createRes()
 
       await Update({ params: { id: '7' }, body: { hasBeenRead: true } }, res)
 
@@ -257,14 +317,39 @@ describe('Contact Controller', () => {
       expect(save).toHaveBeenCalledTimes(1)
       expect(successResponse).toHaveBeenCalledWith(
         res,
-        200,
-        'Statut de lecture mis à jour.',
-        contact
-      )
-    })
-  })
+          200,
+          'Statut de lecture mis à jour.',
+          contact
+        )
+      })
 
-  describe('DeleteById', () => {
+      it("retourne 404 si le message n'existe pas", async () => {
+        Contact.findByPk.mockResolvedValue(null)
+        const res = createRes()
+
+        await Update({ params: { id: '9' }, body: { hasBeenRead: true } }, res)
+
+        expect(notFoundResponse).toHaveBeenCalledWith(
+          res,
+          'Message de contact introuvable.'
+        )
+      })
+
+      it('gère les erreurs inattendues en renvoyant une 500', async () => {
+        Contact.findByPk.mockRejectedValue(new Error('db failure'))
+        const res = createRes()
+
+        await Update({ params: { id: '3' }, body: { hasBeenRead: true } }, res)
+
+        expect(consoleErrorSpy).toHaveBeenCalled()
+        expect(internalErrorResponse).toHaveBeenCalledWith(
+          res,
+          'Une erreur interne est survenue. Impossible de mettre à jour le message.'
+        )
+      })
+    })
+
+    describe('DeleteById', () => {
     it("retourne 404 si le message n'existe pas", async () => {
       Contact.findByPk.mockResolvedValue(null)
       const res = createRes()
@@ -274,30 +359,44 @@ describe('Contact Controller', () => {
       expect(notFoundResponse).toHaveBeenCalledWith(res, 'Message de contact introuvable.')
     })
 
-    it('supprime le message et retourne un succès', async () => {
-      const destroy = jest.fn()
-      Contact.findByPk.mockResolvedValue({ id: 10, destroy })
-      const res = createRes()
+      it('supprime le message et retourne un succès', async () => {
+        const destroy = jest.fn()
+        Contact.findByPk.mockResolvedValue({ id: 10, destroy })
+        const res = createRes()
 
       await DeleteById({ params: { id: '10' } }, res)
 
       expect(destroy).toHaveBeenCalledTimes(1)
       expect(successResponse).toHaveBeenCalledWith(
         res,
-        200,
-        'Message supprimé avec succès.'
-      )
-    })
+          200,
+          'Message supprimé avec succès.'
+        )
+      })
 
-    it("retourne une erreur de validation si l'identifiant est invalide", async () => {
-      const res = createRes()
+      it("retourne une erreur de validation si l'identifiant est invalide", async () => {
+        const res = createRes()
 
-      await DeleteById({ params: { id: 'abc' } }, res)
+        await DeleteById({ params: { id: 'abc' } }, res)
 
-      expect(validationErrorResponse).toHaveBeenCalledWith(
-        res,
-        "L'identifiant fourni est invalide."
-      )
+        expect(validationErrorResponse).toHaveBeenCalledWith(
+          res,
+          "L'identifiant fourni est invalide."
+        )
+      })
+
+      it('renvoie une erreur interne quand la suppression échoue', async () => {
+        const destroy = jest.fn().mockRejectedValue(new Error('cannot destroy'))
+        Contact.findByPk.mockResolvedValue({ id: 12, destroy })
+        const res = createRes()
+
+        await DeleteById({ params: { id: '12' } }, res)
+
+        expect(consoleErrorSpy).toHaveBeenCalled()
+        expect(internalErrorResponse).toHaveBeenCalledWith(
+          res,
+          'Une erreur interne est survenue. Impossible de supprimer le message.'
+        )
+      })
     })
   })
-})
