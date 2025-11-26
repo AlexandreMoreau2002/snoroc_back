@@ -4,3 +4,4 @@ node_modules/
 docker-compose.override.yml
 public/uploads/*
 !public/uploads/seed/**
+coverage
