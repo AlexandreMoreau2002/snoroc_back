@@ -15,7 +15,7 @@
 ```bash
 npm run test:coverage
 ```
-Le rapport textuel s'affiche dans le terminal et les fichiers détaillés sont produits dans le dossier `coverage/` (HTML dans `coverage/lcov-report/index.html`). Les dossiers `public/`, `docker/`, `migrations/`, `seeders/` et `node_modules/` sont exclus par configuration.
+Le rapport textuel s'affiche dans le terminal et les fichiers détaillés sont produits dans le dossier `coverage/` (HTML dans `coverage/lcov-report/index.html`). Les dossiers `public/`, `docker/`, `migrations/`, `seeders/`, `coverage/` et `node_modules/` sont exclus par configuration.
 
 ## Lire et comprendre le rapport
 - **Statements / Branches / Functions / Lines** doivent tous dépasser 80 % (seuil global configuré).
@@ -55,10 +55,3 @@ it('retourne 404 si utilisateur inexistant', async () => {
   expect(res.json).toHaveBeenCalledWith({ value: false, message: 'Utilisateur introuvable.' })
 })
 ```
-
-## Controllers restant à couvrir
-- `album.controller.js`
-- `event.controller.js`
-- `media.controller.js`
-
-Ajoutez leurs tests dans `tests/unit/controllers/` en appliquant les mêmes conventions.
