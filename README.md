@@ -79,8 +79,28 @@ Annuler les migrations
 npx sequelize-cli db:migrate:undo:all
 ```
 
-Seed des utilisateurs pour dev
+### Commandes de seeding
+
+Exécuter tous les seeders
 
 ```bash
 npx sequelize-cli db:seed:all
+```
+
+Exécuter un seeder spécifique
+
+```bash
+npx sequelize-cli db:seed --seed 001-seed-users.js
+```
+
+Annuler tous les seeders
+
+```bash
+npx sequelize-cli db:seed:undo:all
+```
+
+Annuler un seeder spécifique
+
+```bash
+npx sequelize-cli db:seed:undo --seed 001-seed-users.js
 ```
