@@ -27,7 +27,7 @@ module.exports = {
         await queryInterface.bulkInsert('about', [{
             title: 'Snoroc',
             description: paragraphs.join('\n\n'),
-            image: `${BASE_URL}/uploads/seed/about-default.jpg`,
+            image: null, // Will use frontend default image (Actus.jpg)
             createdAt: new Date(),
             updatedAt: new Date()
         }], {});
