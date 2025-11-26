@@ -40,8 +40,18 @@ const createRes = () => ({
 })
 
 describe('News Controller', () => {
+  let consoleErrorSpy
+  let consoleLogSpy
+
   beforeEach(() => {
     jest.clearAllMocks()
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
+    consoleLogSpy.mockRestore()
   })
 
   describe('Create', () => {

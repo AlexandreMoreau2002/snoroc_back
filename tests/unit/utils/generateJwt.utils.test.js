@@ -3,16 +3,23 @@ let generateJwt
 
   describe('generateJwt.utils', () => {
     const OLD_ENV = process.env
+    let consoleErrorSpy
 
     beforeEach(() => {
       jest.resetModules()
       process.env = { ...OLD_ENV, JWT_SECRET: 'test-secret' }
       jwt = require('jsonwebtoken')
       ;({ generateJwt } = require('../../../src/utils/generateJwt.utils'))
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     })
 
   afterAll(() => {
     process.env = OLD_ENV
+    consoleErrorSpy?.mockRestore()
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockClear()
   })
 
   it('génère un token contenant les données fournies', async () => {
