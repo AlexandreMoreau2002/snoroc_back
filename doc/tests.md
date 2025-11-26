@@ -58,9 +58,7 @@ it('retourne 404 si utilisateur inexistant', async () => {
 
 ## Controllers restant à couvrir
 - `album.controller.js`
-- `contact.controller.js`
 - `event.controller.js`
 - `media.controller.js`
-- `news.controller.js`
 
 Ajoutez leurs tests dans `tests/unit/controllers/` en appliquant les mêmes conventions.
