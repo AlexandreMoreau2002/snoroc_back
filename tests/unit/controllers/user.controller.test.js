@@ -492,7 +492,7 @@ describe('User Controller', () => {
       )
     })
 
-      it('met à jour les données utilisateur en cas de succès', async () => {
+    it('met à jour les données utilisateur en cas de succès', async () => {
         const user = {
           id: 1,
           firstName: 'Old',
@@ -522,8 +522,32 @@ describe('User Controller', () => {
         email: 'new@example.com',
         phoneNumber: '+33611111111',
       })
-        expect(res.status).toHaveBeenCalledWith(200)
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
+
+    it('conserve les valeurs existantes si aucun champ optionnel nest fourni', async () => {
+      const user = {
+        id: 2,
+        firstName: 'Existing',
+        lastName: 'User',
+        email: 'existing@example.com',
+        phoneNumber: '+33622222222',
+        update: mockUpdate,
+      }
+      const req = { body: { id: 2 } }
+      const res = createRes()
+      mockFindOne.mockResolvedValue(user)
+
+      await Update(req, res)
+
+      expect(mockUpdate).toHaveBeenCalledWith({
+        firstName: 'Existing',
+        lastName: 'User',
+        email: 'existing@example.com',
+        phoneNumber: '+33622222222',
       })
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
 
       it('renvoie 500 lorsque la mise à jour échoue', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
@@ -795,12 +819,28 @@ describe('User Controller', () => {
   describe('ResetPassword', () => {
     const ResetPassword = require('../../../src/controllers/user.controller').ResetPassword
 
-    it('retourne 400 si des champs sont manquants', async () => {
+  it('retourne 400 si des champs sont manquants', async () => {
+    const res = createRes()
+
+    await ResetPassword({ body: {} }, res)
+
+    expect(res.status).toHaveBeenCalledWith(400)
+  })
+
+    it('retourne 400 si le nouveau mot de passe est trop faible', async () => {
       const res = createRes()
 
-      await ResetPassword({ body: {} }, res)
+      await ResetPassword({
+        body: { email: baseUserData.email, resetToken: 'token', newPassword: 'weak' },
+      }, res)
 
       expect(res.status).toHaveBeenCalledWith(400)
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.',
+        })
+      )
     })
 
     it('retourne 404 si aucun utilisateur', async () => {
@@ -881,12 +921,24 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(400)
     })
 
-    it('retourne 400 si newsletter n’est pas booléen', async () => {
+  it('retourne 400 si newsletter n’est pas booléen', async () => {
+    const res = createRes()
+
+    await UpdateNewsletter({ body: { id: 1, newsletter: 'yes' } }, res)
+
+    expect(res.status).toHaveBeenCalledWith(400)
+  })
+
+    it('retourne 404 si utilisateur introuvable', async () => {
       const res = createRes()
+      mockFindOne.mockResolvedValue(null)
 
-      await UpdateNewsletter({ body: { id: 1, newsletter: 'yes' } }, res)
+      await UpdateNewsletter({ body: { id: 99, newsletter: true } }, res)
 
-      expect(res.status).toHaveBeenCalledWith(400)
+      expect(res.status).toHaveBeenCalledWith(404)
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Utilisateur introuvable.' })
+      )
     })
 
       it('met à jour le flag newsletter', async () => {
@@ -920,6 +972,22 @@ describe('User Controller', () => {
   describe('UpdatePassword', () => {
     const UpdatePassword = require('../../../src/controllers/user.controller').UpdatePassword
 
+    it('retourne 400 si lid est invalide', async () => {
+      const res = createRes()
+
+      await UpdatePassword({ body: { id: 'abc', currentPassword: 'old', newPassword: 'Password1A' } }, res)
+
+      expect(res.status).toHaveBeenCalledWith(400)
+    })
+
+    it('retourne 400 si les mots de passe sont manquants', async () => {
+      const res = createRes()
+
+      await UpdatePassword({ body: { id: 1, currentPassword: null, newPassword: null } }, res)
+
+      expect(res.status).toHaveBeenCalledWith(400)
+    })
+
     it('retourne 401 si le mot de passe actuel est incorrect', async () => {
       const res = createRes()
       mockFindOne.mockResolvedValue({ id: 1, password: 'hashed' })
@@ -941,6 +1009,18 @@ describe('User Controller', () => {
           message:
             'Le nouveau mot de passe doit contenir au moins 8 caractères, dont une majuscule, une minuscule et un chiffre.',
         })
+      )
+    })
+
+    it('retourne 404 si utilisateur non trouvé', async () => {
+      const res = createRes()
+      mockFindOne.mockResolvedValue(null)
+
+      await UpdatePassword({ body: { id: 2, currentPassword: 'old', newPassword: 'Password1A' } }, res)
+
+      expect(res.status).toHaveBeenCalledWith(404)
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Utilisateur introuvable.' })
       )
     })
 

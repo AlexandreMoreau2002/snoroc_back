@@ -303,7 +303,7 @@ describe('News Controller', () => {
       })
     })
 
-      it('met à jour la miniature et supprime l ancienne', async () => {
+    it('met à jour la miniature et supprime l ancienne', async () => {
         const res = createRes()
         const update = jest.fn().mockResolvedValue({ id: 12, thumbnail: 'new' })
         News.findOne.mockResolvedValue({
@@ -333,12 +333,76 @@ describe('News Controller', () => {
         updatedAt: expect.any(Date),
       })
       expect(res.status).toHaveBeenCalledWith(200)
-        expect(res.json).toHaveBeenCalledWith({
-          error: false,
-          message: 'Actualité mise à jour avec succès.',
-          data: { id: 12, thumbnail: 'new' },
-        })
+      expect(res.json).toHaveBeenCalledWith({
+        error: false,
+        message: 'Actualité mise à jour avec succès.',
+        data: { id: 12, thumbnail: 'new' },
       })
+    })
+
+    it("journalise une erreur si la suppression de l'ancienne image échoue", async () => {
+      const res = createRes()
+      const update = jest.fn().mockResolvedValue({ id: 13 })
+      News.findOne.mockResolvedValue({
+        id: 13,
+        title: 'Old',
+        content: 'Content',
+        thumbnail: 'http://localhost/uploads/old.png',
+        update,
+      })
+      fs.existsSync.mockReturnValue(true)
+      const unlinkError = new Error('fs issue')
+      fs.unlinkSync.mockImplementation(() => {
+        throw unlinkError
+      })
+
+      await Update(
+        {
+          params: { id: '13' },
+          body: {},
+          user: { userId: 1 },
+          file: { filename: 'fresh.png' },
+          protocol: 'https',
+          get: jest.fn().mockReturnValue('snoroc.dev'),
+        },
+        res
+      )
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Erreur lors de la suppression de l'ancienne image :",
+        unlinkError
+      )
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
+
+    it("conserve l'ancienne miniature si aucun fichier précédent n'existe", async () => {
+      const res = createRes()
+      const update = jest.fn().mockResolvedValue({ id: 14, thumbnail: 'same' })
+      News.findOne.mockResolvedValue({
+        id: 14,
+        title: 'Old',
+        content: 'Content',
+        thumbnail: 'http://localhost/uploads/old.png',
+        update,
+      })
+      fs.existsSync.mockReturnValue(false)
+
+      await Update(
+        {
+          params: { id: '14' },
+          body: { content: 'New' },
+          user: { userId: 2 },
+          file: { filename: 'fresh.png' },
+          protocol: 'https',
+          get: jest.fn().mockReturnValue('snoroc.dev'),
+        },
+        res
+      )
+
+      expect(consoleLogSpy).toHaveBeenCalledWith('Aucune ancienne image trouvée.')
+      expect(update).toHaveBeenCalled()
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
 
       it('retourne 500 en cas derreur serveur pendant la mise à jour', async () => {
         const res = createRes()
@@ -376,7 +440,7 @@ describe('News Controller', () => {
       })
     })
 
-      it('supprime la miniature si elle existe', async () => {
+    it('supprime la miniature si elle existe', async () => {
         const res = createRes()
         News.findOne.mockResolvedValue({
           id: 4,
@@ -389,11 +453,52 @@ describe('News Controller', () => {
 
       expect(fs.unlinkSync).toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(200)
-        expect(res.json).toHaveBeenCalledWith({
-          error: false,
-          message: "L'actualité a été supprimée avec succès.",
-        })
+      expect(res.json).toHaveBeenCalledWith({
+        error: false,
+        message: "L'actualité a été supprimée avec succès.",
       })
+    })
+
+    it("journalise une erreur si la suppression du fichier échoue", async () => {
+      const res = createRes()
+      const destroy = jest.fn().mockResolvedValue()
+      News.findOne.mockResolvedValue({
+        id: 5,
+        thumbnail: 'http://localhost/uploads/news.png',
+        destroy,
+      })
+      fs.existsSync.mockReturnValue(true)
+      const fileError = new Error('remove failed')
+      fs.unlinkSync.mockImplementation(() => {
+        throw fileError
+      })
+
+      await Delete({ params: { id: '5' } }, res)
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Erreur lors de la suppression de l'image :",
+        fileError
+      )
+      expect(destroy).toHaveBeenCalled()
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
+
+    it("journalise l'absence de fichier lors de la suppression", async () => {
+      const res = createRes()
+      const destroy = jest.fn().mockResolvedValue()
+      News.findOne.mockResolvedValue({
+        id: 6,
+        thumbnail: 'http://localhost/uploads/news.png',
+        destroy,
+      })
+      fs.existsSync.mockReturnValue(false)
+
+      await Delete({ params: { id: '6' } }, res)
+
+      expect(consoleLogSpy).toHaveBeenCalledWith("Le fichier à supprimer n'existe pas.")
+      expect(destroy).toHaveBeenCalled()
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
 
       it('retourne 500 en cas derreur lors de la suppression', async () => {
         const res = createRes()
