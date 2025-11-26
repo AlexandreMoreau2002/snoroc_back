@@ -14,6 +14,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
 
 app.use('/user', require('./src/routes/user.routes'))
 app.use('/news', require('./src/routes/news.routes'))
+app.use('/about', require('./src/routes/about.routes'))
 // app.use('/event', require('./src/routes/event.routes'))
 // app.use('/album', require(./src/routes/album.router))
 // app.use('/media', require('./src/routes/media.routes'))
