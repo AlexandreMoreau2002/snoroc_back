@@ -3,3 +3,5 @@ services:
     volumes:
       - .:/app
       - ./public/uploads:/app/public/uploads
+    env_file:
+      - ./.env 

@@ -73,13 +73,17 @@ jobs:
           name: snoroc_back
           path: .
 
+      - name: Generate .env file
+        run: |
+          echo '${{ toJSON(vars) }}' | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > .env
+
       - name: Copy archive to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ vars.SSH_HOST }}
           username: ${{ vars.SSH_USER }}
           key: ${{ vars.SSH_KEY }}
-          source: 'snoroc_back.tar.gz'
+          source: 'snoroc_back.tar.gz,.env'
           target: '/tmp'
           rm: false
           overwrite: true
@@ -108,31 +112,8 @@ jobs:
 
             tar -xzf /tmp/snoroc_back.tar.gz -C "$PROJECT_DIR"
 
-            echo "Generating .env from GitHub vars..."
-            # Temporarily disable xtrace to avoid leaking secrets in logs
-            set +x
-            {
-              echo "EMAIL=${{ vars.EMAIL }}"
-              echo "EMAIL_USER=${{ vars.EMAIL_USER }}"
-              echo "EMAIL_PASS=${{ vars.EMAIL_PASS }}"
-              echo "EMAIL_SMTP_HOST=${{ vars.EMAIL_SMTP_HOST }}"
-              echo "EMAIL_SMTP_PORT=${{ vars.EMAIL_SMTP_PORT }}"
-              echo "EMAIL_SMTP_SECURE=${{ vars.EMAIL_SMTP_SECURE }}"
-              echo "DB_HOST=${{ vars.DB_HOST }}"
-              echo "DB_PORT=${{ vars.DB_PORT }}"
-              echo "DB_USER=${{ vars.DB_USER }}"
-              echo "DB_PASSWORD=${{ vars.DB_PASSWORD }}"
-              echo "DB_NAME=${{ vars.DB_NAME }}"
-              echo "DB_DATA_DIR=${{ vars.DB_DATA_DIR}}"
-              echo "JWT_SECRET=${{ vars.JWT_SECRET }}"
-              echo "PASSWORD=${{ vars.PASSWORD }}"
-              echo "ENV=${{ vars.ENV }}"
-              echo "BASE_URL=${{ vars.BASE_URL }}"
-              echo "FRONTEND_URL=${{ vars.FRONTEND_URL }}"
-              echo "UPLOADS_DIR=${{ vars.UPLOADS_DIR}}"
-            } > "$PROJECT_DIR/.env"
-
-            set -x
+            # Move the transferred .env file
+            mv /tmp/.env "$PROJECT_DIR/.env"
 
             rm -f /tmp/snoroc_back.tar.gz
 

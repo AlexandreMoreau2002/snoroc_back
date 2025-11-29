@@ -1,35 +1,57 @@
-const Mailjet = require('node-mailjet')
+const nodemailer = require('nodemailer')
 
-const apiKey = process.env.EMAIL_USER
-const apiSecret = process.env.EMAIL_PASS
-
-let mailjet = null
-if (apiKey && apiSecret) {
-  mailjet = Mailjet.apiConnect(apiKey, apiSecret)
-}
+/**
+ * Asynchronously sends an email using predefined SMTP settings.
+ *
+ * @param {Object} mailData - Object containing email parameters.
+ * @param {string} mailData.from - The email address of the sender.
+ * @param {string} mailData.to - The email address(es) of the recipient(s).
+ * @param {string} mailData.subject - The subject line of the email.
+ * @param {string} mailData.text - The plain text body of the email.
+ * @param {string} mailData.html - The HTML body of the email (optional).
+ * @returns {Promise<Object>} - A promise that resolves to an object indicating the result of the email sending operation.
+ */
 
 async function sendEmail({ from, to, subject, text, html }) {
-  if (!mailjet) {
-    return { success: false, error: new Error('Service mail non configuré') }
+  let transporter
+
+  // En production (ou si SMTP_HOST est défini), on utilise le SMTP OVH
+  if (process.env.SMTP_HOST) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour 587
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    })
+  } else {
+    // Fallback pour le développement local (Gmail)
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    })
+  }
+
+  const mailOptions = {
+    from: from || process.env.EMAIL_USER || process.env.EMAIL, // Fallback sur l'email configuré en local
+    to,
+    subject,
+    text,
+    html,
   }
 
   try {
-    const result = await mailjet
-      .post('send', { version: 'v3.1' })
-      .request({
-        Messages: [
-          {
-            From: { Email: from },
-            To: [{ Email: to }],
-            Subject: subject,
-            TextPart: text,
-            HTMLPart: html,
-          },
-        ],
-      })
-    return { success: true, info: result.body }
+    const info = await transporter.sendMail(mailOptions)
+    console.log('Email sent: ' + info.response)
+    return { success: true, message: 'Email sent', info: info }
   } catch (error) {
-    return { success: false, error }
+    console.error('Error sending email: ', error)
+    return { success: false, message: 'Failed to send email', error: error }
   }
 }
 
