@@ -127,7 +127,7 @@ describe('nodemailer.config sendEmail', () => {
         text: 'Test Body',
       })
     )
-    expect(consoleLogSpy).toHaveBeenCalledWith('Email sent: 250 OK')
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('[Mailer] Email sent successfully:'), expect.anything())
   })
 
   it('gère les erreurs d\'envoi', async () => {
@@ -143,7 +143,7 @@ describe('nodemailer.config sendEmail', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toBe(error)
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending email: ', error)
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[Mailer] Error sending email:', error)
   })
 })
 
