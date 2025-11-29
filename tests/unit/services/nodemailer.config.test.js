@@ -1,95 +1,149 @@
-jest.mock('node-mailjet', () => ({ apiConnect: jest.fn() }))
+const nodemailer = require('nodemailer')
 
 describe('nodemailer.config sendEmail', () => {
   const OLD_ENV = process.env
+  let createTransportSpy
+  let sendMailMock
+  let sendEmail
+  let consoleLogSpy
+  let consoleErrorSpy
 
   beforeEach(() => {
     jest.resetModules()
     process.env = { ...OLD_ENV }
+
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { })
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { })
+
+    const nodemailer = require('nodemailer')
+    sendMailMock = jest.fn().mockResolvedValue({ response: '250 OK' })
+
+    createTransportSpy = jest.spyOn(nodemailer, 'createTransport').mockReturnValue({
+      sendMail: sendMailMock,
+    })
+
+    const config = require('../../../config/nodemailer.config')
+    sendEmail = config.sendEmail
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
   })
 
   afterAll(() => {
     process.env = OLD_ENV
   })
 
-  it('retourne une erreur si le service mail est absent', async () => {
-    delete process.env.EMAIL_USER
-    delete process.env.EMAIL_PASS
-    const Mailjet = require('node-mailjet')
-    Mailjet.apiConnect.mockReset()
+  it('utilise la configuration Gmail par défaut (Local)', async () => {
+    delete process.env.SMTP_HOST
+    process.env.EMAIL = 'local@gmail.com'
+    process.env.EMAIL_PASSWORD = 'localpassword'
 
-    const { sendEmail } = require('../../../config/nodemailer.config')
-    const response = await sendEmail({ from: 'a', to: 'b', subject: 's', text: 't', html: '<p>t</p>' })
+    await sendEmail({ from: 'me', to: 'you', subject: 'hi', text: 'txt', html: 'html' })
 
-    expect(response.success).toBe(false)
-    expect(response.error).toEqual(new Error('Service mail non configuré'))
-  })
-
-  it('envoie les données attendues quand Mailjet est configuré', async () => {
-    process.env.EMAIL_USER = 'user'
-    process.env.EMAIL_PASS = 'pass'
-    const Mailjet = require('node-mailjet')
-    Mailjet.apiConnect.mockReset()
-
-    const requestMock = jest.fn().mockResolvedValue({ body: { Messages: ['ok'] } })
-    const postMock = jest.fn(() => ({ request: requestMock }))
-    Mailjet.apiConnect.mockReturnValue({ post: postMock })
-
-    let response
-    jest.isolateModules(() => {
-      const { sendEmail } = require('../../../config/nodemailer.config')
-      response = sendEmail({
-        from: 'from@example.com',
-        to: 'to@example.com',
-        subject: 'Sujet',
-        text: 'Texte',
-        html: '<p>HTML</p>',
-      })
-    })
-
-    const result = await response
-
-    expect(postMock).toHaveBeenCalledWith('send', { version: 'v3.1' })
-    expect(requestMock).toHaveBeenCalledWith({
-      Messages: [
-        {
-          From: { Email: 'from@example.com' },
-          To: [{ Email: 'to@example.com' }],
-          Subject: 'Sujet',
-          TextPart: 'Texte',
-          HTMLPart: '<p>HTML</p>',
+    expect(createTransportSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        service: 'gmail',
+        auth: {
+          user: 'local@gmail.com',
+          pass: 'localpassword',
         },
-      ],
-    })
-    expect(result.success).toBe(true)
-    expect(result.info).toEqual({ Messages: ['ok'] })
+      })
+    )
   })
 
-  it('propage les erreurs renvoyées par Mailjet', async () => {
-    process.env.EMAIL_USER = 'user'
-    process.env.EMAIL_PASS = 'pass'
-    const Mailjet = require('node-mailjet')
-    Mailjet.apiConnect.mockReset()
+  it('utilise la configuration OVH si SMTP_HOST est défini (Production)', async () => {
+    process.env.SMTP_HOST = 'ssl0.ovh.net'
+    process.env.SMTP_PORT = '465'
+    process.env.SMTP_SECURE = 'true'
+    process.env.EMAIL_USER = 'prod@ovh.com'
+    process.env.EMAIL_PASS = 'prodpassword'
 
-    const requestMock = jest.fn().mockRejectedValue(new Error('boom'))
-    const postMock = jest.fn(() => ({ request: requestMock }))
-    Mailjet.apiConnect.mockReturnValue({ post: postMock })
+    await sendEmail({ from: 'me', to: 'you', subject: 'hi', text: 'txt', html: 'html' })
 
-    let response
-    jest.isolateModules(() => {
-      const { sendEmail } = require('../../../config/nodemailer.config')
-      response = sendEmail({
-        from: 'from@example.com',
-        to: 'to@example.com',
-        subject: 'Sujet',
-        text: 'Texte',
-        html: '<p>HTML</p>',
+    expect(createTransportSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'ssl0.ovh.net',
+        port: 465,
+        secure: true,
+        auth: {
+          user: 'prod@ovh.com',
+          pass: 'prodpassword',
+        },
       })
+    )
+  })
+
+  it('utilise le port par défaut 587 si SMTP_PORT est absent (Coverage Line 22)', async () => {
+    process.env.SMTP_HOST = 'ssl0.ovh.net'
+    delete process.env.SMTP_PORT // Force fallback
+    process.env.SMTP_SECURE = 'false'
+    process.env.EMAIL_USER = 'prod@ovh.com'
+    process.env.EMAIL_PASS = 'prodpassword'
+
+    await sendEmail({ from: 'me', to: 'you', subject: 'hi', text: 'txt', html: 'html' })
+
+    expect(createTransportSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'ssl0.ovh.net',
+        port: 587, // Default value
+      })
+    )
+  })
+
+  it('utilise EMAIL_USER ou EMAIL comme fallback pour "from" (Coverage Line 41)', async () => {
+    delete process.env.SMTP_HOST
+    process.env.EMAIL = 'fallback@gmail.com'
+    process.env.EMAIL_PASSWORD = 'pass'
+    delete process.env.EMAIL_USER
+
+    // "from" is undefined here
+    await sendEmail({ to: 'you', subject: 'hi', text: 'txt', html: 'html' })
+
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'fallback@gmail.com',
+      })
+    )
+  })
+
+  it('envoie un email avec succès', async () => {
+    sendMailMock.mockResolvedValue({ response: '250 OK', messageId: '123' })
+
+    const result = await sendEmail({
+      from: 'sender@test.com',
+      to: 'receiver@test.com',
+      subject: 'Test Subject',
+      text: 'Test Body',
     })
 
-    const result = await response
+    expect(result.success).toBe(true)
+    expect(result.info).toEqual({ response: '250 OK', messageId: '123' })
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'sender@test.com',
+        to: 'receiver@test.com',
+        subject: 'Test Subject',
+        text: 'Test Body',
+      })
+    )
+    expect(consoleLogSpy).toHaveBeenCalledWith('Email sent: 250 OK')
+  })
+
+  it('gère les erreurs d\'envoi', async () => {
+    const error = new Error('Connection refused')
+    sendMailMock.mockRejectedValue(error)
+
+    const result = await sendEmail({
+      from: 'sender@test.com',
+      to: 'receiver@test.com',
+      subject: 'Test Subject',
+      text: 'Test Body',
+    })
 
     expect(result.success).toBe(false)
-    expect(result.error).toEqual(new Error('boom'))
+    expect(result.error).toBe(error)
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending email: ', error)
   })
 })
+
