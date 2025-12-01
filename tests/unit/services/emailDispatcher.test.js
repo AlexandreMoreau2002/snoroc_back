@@ -2,6 +2,17 @@ const dispatcherModule = require('../../../src/services/email/emailDispatcher')
 const { EmailDispatcher } = require('../../../src/services/email/emailDispatcher')
 
 describe('EmailDispatcher', () => {
+  let consoleErrorSpy
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
+    jest.clearAllMocks()
+  })
+
   it('attache la file au worker et programme le traitement', () => {
     const mockWorker = {
       bindQueue: jest.fn(),
@@ -43,7 +54,6 @@ describe('EmailDispatcher', () => {
     }
 
     const dispatcher = new EmailDispatcher(mockWorker)
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     dispatcher.queue.push = () => {
       throw new Error('queue down')
     }
@@ -51,8 +61,7 @@ describe('EmailDispatcher', () => {
     const result = dispatcher.enqueueEmail({ to: 'user@example.com' })
 
     expect(result).toBe(false)
-    expect(consoleSpy).toHaveBeenCalled()
-    consoleSpy.mockRestore()
+    expect(consoleErrorSpy).toHaveBeenCalled()
   })
 
   it('expose une instance prête à l\'emploi', () => {

@@ -1,7 +1,14 @@
 const EmailWorker = require('../../../src/services/email/emailWorker')
 
 describe('EmailWorker', () => {
+  let consoleErrorSpy
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
   afterEach(() => {
+    consoleErrorSpy.mockRestore()
     jest.clearAllMocks()
   })
 
@@ -30,7 +37,6 @@ describe('EmailWorker', () => {
   })
 
   it('capture les erreurs inattendues et planifie une relance', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     const sendFn = jest.fn().mockRejectedValue(new Error('smtp down'))
     const worker = new EmailWorker({ sendFn, maxRetries: 1, baseBackoffMs: 0 })
     const queue = [{ to: 'user@example.com' }]
@@ -40,7 +46,6 @@ describe('EmailWorker', () => {
 
     expect(sendFn).toHaveBeenCalledTimes(1)
     expect(queue).toHaveLength(0)
-    consoleSpy.mockRestore()
   })
 
   it('ignore le déclenchement si un traitement est déjà en cours', async () => {

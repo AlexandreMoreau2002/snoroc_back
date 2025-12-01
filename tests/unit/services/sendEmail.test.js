@@ -6,8 +6,15 @@ const transport = require('../../../config/nodemailer.config')
 const { sendEmail } = require('../../../src/services/email/sendEmail')
 
 describe('sendEmail service wrapper', () => {
+  let consoleErrorSpy
+
   beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     jest.clearAllMocks()
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
   })
 
   it('retourne la réponse du transport quand succès', async () => {
