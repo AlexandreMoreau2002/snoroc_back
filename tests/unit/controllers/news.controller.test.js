@@ -13,8 +13,8 @@ jest.mock('../../../src/models/user.model', () => ({
   findAll: jest.fn(),
 }))
 
-jest.mock('../../../config/nodemailer.config', () => ({
-  sendEmail: jest.fn(),
+jest.mock('../../../src/services/email/emailDispatcher', () => ({
+  enqueueEmail: jest.fn(),
 }))
 
 jest.mock('../../../src/services/email/newNews.service', () => ({
@@ -24,7 +24,7 @@ jest.mock('../../../src/services/email/newNews.service', () => ({
 const fs = require('fs')
 const News = require('../../../src/models/news.model')
 const User = require('../../../src/models/user.model')
-const { sendEmail } = require('../../../config/nodemailer.config')
+const emailDispatcher = require('../../../src/services/email/emailDispatcher')
 const { notifNewsletterNews } = require('../../../src/services/email/newNews.service')
 const {
   Create,
@@ -88,7 +88,7 @@ describe('News Controller', () => {
         content: 'World',
         thumbnail: expect.stringContaining('uploads/image.png'),
       })
-      expect(sendEmail).not.toHaveBeenCalled()
+      expect(emailDispatcher.enqueueEmail).not.toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(201)
       expect(res.json).toHaveBeenCalledWith({
         error: false,
@@ -121,7 +121,9 @@ describe('News Controller', () => {
         News.create.mockResolvedValue(news)
         User.findAll.mockResolvedValue([{ email: 'user@example.com' }])
       notifNewsletterNews.mockReturnValue({ to: 'user@example.com' })
-      sendEmail.mockRejectedValue(new Error('smtp'))
+      emailDispatcher.enqueueEmail.mockImplementation(() => {
+        throw new Error('smtp')
+      })
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
       const req = {
         body: { title: 'Titre', content: 'Corps' },
@@ -134,7 +136,9 @@ describe('News Controller', () => {
       await Create(req, res)
 
       expect(notifNewsletterNews).toHaveBeenCalledWith('user@example.com', 5)
-      expect(sendEmail).toHaveBeenCalledWith({ to: 'user@example.com' })
+      expect(emailDispatcher.enqueueEmail).toHaveBeenCalledWith({
+        to: 'user@example.com',
+      })
       expect(res.status).toHaveBeenCalledWith(201)
       expect(res.json).toHaveBeenCalledWith({
         error: false,
@@ -144,14 +148,14 @@ describe('News Controller', () => {
         consoleSpy.mockRestore()
       })
 
-      it('journalise une erreur quand sendEmail retourne un échec', async () => {
+      it("journalise une erreur quand la mise en file d'attente échoue", async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
         const res = createRes()
         const news = { id: 6, title: 'Titre', content: 'Corps', thumbnail: 'url' }
         News.create.mockResolvedValue(news)
         User.findAll.mockResolvedValue([{ email: 'user@example.com' }])
         notifNewsletterNews.mockReturnValue({ to: 'user@example.com' })
-        sendEmail.mockResolvedValue({ success: false, error: 'smtp error' })
+        emailDispatcher.enqueueEmail.mockReturnValue(false)
         const req = {
           body: { title: 'Titre', content: 'Corps' },
           file: { filename: 'image.png' },

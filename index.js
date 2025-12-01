@@ -4,6 +4,7 @@ const app = require('./app')
 const { version } = require('./package.json')
 const sequelize = require('./config/database.config')
 const initDatabase = require('./config/init-database')
+require('./src/services/email/emailDispatcher')
 
 const ENV = process.env.ENV || 'dev'
 const port = process.env.PORT || 3030

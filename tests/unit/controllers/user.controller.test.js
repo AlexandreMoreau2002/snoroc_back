@@ -1,4 +1,3 @@
-const mockSendEmail = jest.fn()
 const mockEncryptPassword = jest.fn()
 const mockComparePassword = jest.fn()
 const mockGenerateJwt = jest.fn()
@@ -22,7 +21,11 @@ jest.mock('../../../src/models/user.model', () => {
   return MockUser
 })
 
-jest.mock('../../../config/nodemailer.config', () => ({ sendEmail: mockSendEmail }))
+const mockEnqueueEmail = jest.fn()
+
+jest.mock('../../../src/services/email/emailDispatcher', () => ({
+  enqueueEmail: (...args) => mockEnqueueEmail(...args),
+}))
 
 jest.mock('phone', () => ({ phone: jest.fn() }))
 const phoneModule = require('phone')
@@ -82,7 +85,7 @@ describe('User Controller', () => {
     mockDestroy.mockResolvedValue(true)
     mockFindOne.mockReset()
     mockFindByPk.mockReset()
-    mockSendEmail.mockReset()
+    mockEnqueueEmail.mockReset()
     mockEncryptPassword.mockResolvedValue('hashed-password')
     mockComparePassword.mockResolvedValue(true)
     mockGenerateJwt.mockResolvedValue('jwt-token')
@@ -157,27 +160,13 @@ describe('User Controller', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       phoneMock.mockReturnValue({ isValid: false })
       mockFindOne.mockResolvedValue(null)
-      mockSendEmail.mockResolvedValue({ success: true })
+      mockEnqueueEmail.mockReturnValue(true)
 
       await SignUp(req, res)
 
       expect(consoleSpy).toHaveBeenCalledWith('Numéro de téléphone non valide')
       expect(res.status).toHaveBeenCalledWith(200)
       consoleSpy.mockRestore()
-    })
-
-    it("retourne 500 en cas d'échec d'envoi d'email", async () => {
-      const req = { body: baseUserData }
-      const res = createRes()
-      mockFindOne.mockResolvedValue(null)
-      mockSendEmail.mockResolvedValue({ success: false, message: 'Erreur mail' })
-
-      await SignUp(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ value: false, message: 'Erreur mail' })
-      )
     })
 
     it('retourne 500 si une erreur inattendue survient', async () => {
@@ -200,12 +189,12 @@ describe('User Controller', () => {
       const req = { body: baseUserData }
       const res = createRes()
       mockFindOne.mockResolvedValue(null)
-      mockSendEmail.mockResolvedValue({ success: true })
+      mockEnqueueEmail.mockReturnValue(true)
 
       await SignUp(req, res)
 
       expect(mockEncryptPassword).toHaveBeenCalledWith(baseUserData.password)
-      expect(mockSendEmail).toHaveBeenCalledWith(
+      expect(mockEnqueueEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: baseUserData.email })
       )
       expect(mockGenerateJwt).toHaveBeenCalledWith(
@@ -774,29 +763,15 @@ describe('User Controller', () => {
       const res = createRes()
       const user = { save: mockSave }
       mockFindOne.mockResolvedValue(user)
-      mockSendEmail.mockResolvedValue({ success: true })
+      mockEnqueueEmail.mockReturnValue(true)
 
       await ForgotPassword({ body: { email: baseUserData.email } }, res)
 
       expect(mockGenerateVerificationCode).toHaveBeenCalled()
       expect(user.passwordResetToken).toBeDefined()
-      expect(mockSendEmail).toHaveBeenCalled()
+      expect(mockEnqueueEmail).toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(200)
     })
-
-      it("retourne 500 si l'envoi d'email échoue", async () => {
-        const res = createRes()
-        const user = { save: mockSave }
-        mockFindOne.mockResolvedValue(user)
-        mockSendEmail.mockResolvedValue({ success: false })
-
-      await ForgotPassword({ body: { email: baseUserData.email } }, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
-        expect(res.json).toHaveBeenCalledWith(
-          expect.objectContaining({ message: "Échec de l'envoi de l'email." })
-        )
-      })
 
       it('renvoie 500 en cas derreur inattendue', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})

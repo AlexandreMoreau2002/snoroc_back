@@ -4,6 +4,7 @@ const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const { version } = require('./package.json')
+const errorHandler = require('./src/middlewares/errorHandler')
 
 const app = express()
 
@@ -22,5 +23,7 @@ app.use('/contact', require('./src/routes/contact.routes'))
 
 // Test API
 app.get('/', (req, res) => res.send(`Hello World - v${version}`))
+
+app.use(errorHandler)
 
 module.exports = app
