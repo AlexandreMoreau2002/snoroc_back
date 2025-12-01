@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const News = require('../models/news.model')
 const User = require('../models/user.model')
-const { sendEmail } = require('../../config/nodemailer.config')
+const emailDispatcher = require('../services/email/emailDispatcher')
 const { notifNewsletterNews } = require('../services/email/newNews.service')
 
 exports.Create = async (req, res) => {
@@ -49,17 +49,16 @@ exports.Create = async (req, res) => {
 
     for (const user of users) {
       const emailData = notifNewsletterNews(user.email, news.id)
-
       try {
-        const emailResponse = await sendEmail(emailData)
-        if (!emailResponse.success) {
-          console.error(
-            `Erreur lors de l'envoi à ${user.email} :`,
-            emailResponse.error
-          )
+        const queued = emailDispatcher.enqueueEmail(emailData)
+        if (!queued) {
+          console.error(`Erreur lors de la planification du mail pour ${user.email}`)
         }
       } catch (error) {
-        console.error(`Erreur lors de l'envoi à ${user.email} :`, error)
+        console.error(
+          `Erreur lors de la planification du mail pour ${user.email}`,
+          error
+        )
       }
     }
 

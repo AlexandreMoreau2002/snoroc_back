@@ -1,6 +1,6 @@
 // back/src/controllers/contact.controller.js
 const Contact = require('../models/contact.model')
-const { sendEmail } = require('../../config/nodemailer.config')
+const emailDispatcher = require('../services/email/emailDispatcher')
 const { cleanInput, isValidEmail } = require('../utils/common.utils')
 const { buildContactEmailNotification } = require('../services/email/contactEmailTemplate.service')
 const {
@@ -52,8 +52,8 @@ exports.Create = async (req, res) => {
           [companyEmail],
           createdContact
         )
-        const emailResponse = await sendEmail(emailData)
-        if (!emailResponse.success) {
+        const queued = emailDispatcher.enqueueEmail(emailData)
+        if (!queued) {
           emailWarning =
             "Message enregistré, mais l'envoi de l'email a échoué. Consultez les logs pour plus de détails."
         }

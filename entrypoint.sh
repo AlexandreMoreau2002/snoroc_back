@@ -6,5 +6,8 @@ if [ ! -d "node_modules" ] || [ -z "$(ls -A node_modules)" ]; then
     npm install
 fi
 
+echo "Exécution des migrations Sequelize..."
+npm run migrate
+
 echo "Démarrage de l'application..."
 exec "$@"

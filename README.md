@@ -64,6 +64,7 @@ Accès aux services
 Notes importantes
 • Lors de l’exécution de make reset, toutes les données de la base MySQL seront supprimées.
 • Utilisez make code pour interagir directement avec le conteneur backend (ex. exécuter des commandes Sequelize ou déboguer).
+• Le worker d'envoi d'emails tourne dans le même process que l'API : aucune commande supplémentaire n'est nécessaire, il est initialisé automatiquement au démarrage du serveur et traite la file dès qu'un job est ajouté.
 
 ### Commandes sequelize importante
 

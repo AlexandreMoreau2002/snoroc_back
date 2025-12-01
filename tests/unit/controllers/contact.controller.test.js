@@ -4,8 +4,8 @@ jest.mock('../../../src/models/contact.model', () => ({
   findByPk: jest.fn(),
 }))
 
-jest.mock('../../../config/nodemailer.config', () => ({
-  sendEmail: jest.fn(),
+jest.mock('../../../src/services/email/emailDispatcher', () => ({
+  enqueueEmail: jest.fn(),
 }))
 
 jest.mock('../../../src/services/email/contactEmailTemplate.service', () => ({
@@ -28,7 +28,7 @@ jest.mock('../../../src/utils/apiResponse.utils', () => ({
 }))
 
 const Contact = require('../../../src/models/contact.model')
-const { sendEmail } = require('../../../config/nodemailer.config')
+const emailDispatcher = require('../../../src/services/email/emailDispatcher')
 const { buildContactEmailNotification } = require('../../../src/services/email/contactEmailTemplate.service')
 const {
   successResponse,
@@ -77,7 +77,7 @@ describe('Contact Controller', () => {
       )
     })
 
-    it("enregistre le message et renvoie un avertissement si l'envoi d'email échoue", async () => {
+    it("enregistre le message et renvoie un avertissement si la mise en file d'attente échoue", async () => {
       process.env.EMAIL = 'company@example.com'
       const mockContact = {
         id: 1,
@@ -91,7 +91,7 @@ describe('Contact Controller', () => {
         get: () => mockContact,
       })
       buildContactEmailNotification.mockReturnValue({ to: 'company@example.com' })
-      sendEmail.mockResolvedValue({ success: false, error: 'smtp failure' })
+      emailDispatcher.enqueueEmail.mockReturnValue(false)
 
       const req = { body: { ...mockContact } }
       const res = createRes()
@@ -109,7 +109,7 @@ describe('Contact Controller', () => {
         [process.env.EMAIL],
         mockContact
       )
-      expect(sendEmail).toHaveBeenCalledTimes(1)
+      expect(emailDispatcher.enqueueEmail).toHaveBeenCalledTimes(1)
       expect(successResponse).toHaveBeenCalledWith(
         res,
         202,
@@ -132,7 +132,9 @@ describe('Contact Controller', () => {
       }
       Contact.create.mockResolvedValue({ get: () => mockContact })
       buildContactEmailNotification.mockReturnValue({ to: 'company@example.com' })
-      sendEmail.mockRejectedValue(new Error('smtp down'))
+      emailDispatcher.enqueueEmail.mockImplementation(() => {
+        throw new Error('smtp down')
+      })
 
       const req = { body: { ...mockContact } }
       const res = createRes()
@@ -171,7 +173,7 @@ describe('Contact Controller', () => {
 
       await Create(req, res)
 
-      expect(sendEmail).not.toHaveBeenCalled()
+      expect(emailDispatcher.enqueueEmail).not.toHaveBeenCalled()
       expect(successResponse).toHaveBeenCalledWith(
         res,
         201,
