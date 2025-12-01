@@ -35,6 +35,18 @@ describe('sendEmail service wrapper', () => {
     expect(response.message).toBe('smtp down')
   })
 
+  it('utilise le message par défaut si aucune réponse', async () => {
+    transport.sendEmail.mockResolvedValue(undefined)
+
+    const response = await sendEmail({ to: 'user@example.com' })
+
+    expect(response).toEqual({
+      success: false,
+      message: "Échec de l'envoi de l'email.",
+      error: undefined,
+    })
+  })
+
   it('capture les exceptions inattendues', async () => {
     transport.sendEmail.mockRejectedValue(new Error('boom'))
 
