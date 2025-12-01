@@ -8,7 +8,7 @@
  */
 
 const emailDataforgotPassword = (to, resetToken) => {
-  const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/+$/, '')
+  const frontendUrl = process.env.FRONTEND_URL || ''
   const resetLink = `${frontendUrl}/ForgotPassword?token=${resetToken}`
 
   return {

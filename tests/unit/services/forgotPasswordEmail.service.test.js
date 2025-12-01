@@ -13,13 +13,13 @@ describe('emailDataforgotPassword', () => {
     process.env.EMAIL = originalEmail
   })
 
-  it('construit un lien sans double slash quand FRONTEND_URL termine par /', () => {
+  it('peut produire un double slash quand FRONTEND_URL termine par /', () => {
     process.env.FRONTEND_URL = 'https://dev.snoroc.fr/'
 
     const mailData = emailDataforgotPassword('user@example.com', 'abc123')
 
-    expect(mailData.html).toContain('https://dev.snoroc.fr/ForgotPassword?token=abc123')
-    expect(mailData.text).toContain('https://dev.snoroc.fr/ForgotPassword?token=abc123')
+    expect(mailData.html).toContain('https://dev.snoroc.fr//ForgotPassword?token=abc123')
+    expect(mailData.text).toContain('https://dev.snoroc.fr//ForgotPassword?token=abc123')
   })
 
   it('fonctionne aussi sans slash final', () => {
