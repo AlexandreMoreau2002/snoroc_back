@@ -23,6 +23,10 @@ app.use('/contact', require('./src/routes/contact.routes'))
 
 // Test API
 app.get('/', (req, res) => res.send(`Hello World - v${version}`))
+app.get('/test-log', (req, res) => {
+    console.log('Test log entry')
+    res.send('Test log entry created')
+})
 
 app.use(errorHandler)
 

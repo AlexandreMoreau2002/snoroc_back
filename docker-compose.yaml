@@ -1,3 +1,4 @@
+name: ${INSTANCE:-snoroc_default}
 services:
   database:
     image: mysql:8.0
@@ -9,7 +10,7 @@ services:
     ports:
       - '3306:3306'
     volumes:
-      - ${DB_DATA_DIR:-db_data}:/var/lib/mysql
+      - db_data:/var/lib/mysql
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '--silent']
       interval: 5s

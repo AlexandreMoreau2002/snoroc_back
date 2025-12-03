@@ -33,7 +33,7 @@ make start
 
 Démarre les conteneurs en arrière-plan.
 
-Arrêter le projet
+Arrêter le projet (sans toucher aux volumes)
 
 ```bash
 make stop
@@ -41,13 +41,29 @@ make stop
 
 Arrête les conteneurs Docker sans supprimer les volumes.
 
-Réinitialiser le projet
+Redémarrer proprement (stop puis start)
 
 ```bash
-make reset
+make restart
 ```
 
-Arrête les conteneurs, supprime les volumes associés (incluant la base de données), puis reconstruit et redémarre les conteneurs.
+Reconstruire les images sans supprimer le volume MySQL
+
+```bash
+make rebuild
+```
+
+Mettre à jour les images depuis le registry
+
+```bash
+make pull
+```
+
+Sauvegarde manuelle immédiate de la base (dump SQL daté dans `backups/`)
+
+```bash
+make backup
+```
 
 Accéder au conteneur backend
 
@@ -62,7 +78,8 @@ Accès aux services
 • phpMyAdmin : http://localhost:8080
 
 Notes importantes
-• Lors de l’exécution de make reset, toutes les données de la base MySQL seront supprimées.
+• Ne pas utiliser de commandes destructives (`docker compose down --volumes`) pour préserver la base.
+• Utilisez `make backup` avant toute opération risquée et conservez les dumps.
 • Utilisez make code pour interagir directement avec le conteneur backend (ex. exécuter des commandes Sequelize ou déboguer).
 • Le worker d'envoi d'emails tourne dans le même process que l'API : aucune commande supplémentaire n'est nécessaire, il est initialisé automatiquement au démarrage du serveur et traite la file dès qu'un job est ajouté.
 
