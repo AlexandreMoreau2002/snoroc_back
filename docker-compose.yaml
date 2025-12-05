@@ -4,12 +4,12 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: snoroc
-      MYSQL_USER: snoroc
-      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - '3306:3306'
+    #   - '3306:3306'  <-- SECURITY: CLOSED TO PUBLIC INTERNET
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -52,8 +52,8 @@ services:
       - '8080:80'
     environment:
       PMA_HOST: database
-      PMA_USER: root
-      PMA_PASSWORD: root
+      # PMA_USER: root      <-- RETIRÉ (Force le login)
+      # PMA_PASSWORD: root  <-- RETIRÉ (Force le login)
     depends_on:
       - database
     networks:
