@@ -8,8 +8,6 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-    #   - '3306:3306'  <-- SECURITY: CLOSED TO PUBLIC INTERNET
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -52,8 +50,6 @@ services:
       - '8080:80'
     environment:
       PMA_HOST: database
-      # PMA_USER: root      <-- RETIRÉ (Force le login)
-      # PMA_PASSWORD: root  <-- RETIRÉ (Force le login)
     depends_on:
       - database
     networks:
