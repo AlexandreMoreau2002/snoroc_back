@@ -3,7 +3,7 @@ require('./config/loadEnv')
 const app = require('./app')
 const { version } = require('./package.json')
 const sequelize = require('./config/database.config')
-const initDatabase = require('./config/init-database')
+// const initDatabase = require('./config/init-database')
 require('./src/services/email/emailDispatcher')
 
 const ENV = process.env.ENV || 'dev'
@@ -11,7 +11,7 @@ const port = process.env.PORT || 3030
 
 async function start() {
   try {
-    await Promise.all([initDatabase(), sequelize.authenticate()])
+    await Promise.all([sequelize.authenticate()])
     console.log(
       `Connexion a la base de donnée établie avec succès, Server v${version}, mode : ${ENV}`
     )
