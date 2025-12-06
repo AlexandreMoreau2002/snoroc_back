@@ -11,7 +11,6 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
 | `title`     | string   | oui         | Titre du média. |
 | `description` | text   | non         | Description longue du média. |
 | `url`       | string (URL YouTube) | oui | Lien YouTube intégré par le front. |
-| `albumId`   | integer  | non         | Album associé (optionnel). |
 | `authorId`  | integer  | oui (création) | Identifiant de l'admin ayant créé le média. |
 | `createdAt` | date     | oui         | Date de création. |
 | `updatedAt` | date     | oui         | Date de dernière mise à jour. |
@@ -31,7 +30,6 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
       "title": "Live session",
       "description": "Version acoustique.",
       "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "albumId": 2,
       "authorId": 3,
       "createdAt": "2024-04-02T12:00:00.000Z",
       "updatedAt": "2024-04-02T12:00:00.000Z"
@@ -55,7 +53,6 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
   - `title` *(string, requis)*
   - `url` *(string, requis, lien YouTube)*
   - `description` *(string, optionnel)*
-  - `albumId` *(integer, optionnel)*
 - **Réponse 201**
 ```json
 {
@@ -66,13 +63,12 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
 - **Erreurs fréquentes**:
   - `400` si un champ obligatoire manque ou si l'URL n'est pas un lien YouTube valide.
   - `401` si le JWT est manquant/invalidé.
-  - `404` si `albumId` est fourni mais inexistant.
 
 ### PATCH `/media/update/:id`
 - **Auth**: JWT admin requis
 - **Paramètres**: `id` (integer, requis)
 - **Content-Type**: `application/json`
-- **Champs** (optionnels): `title`, `description`, `url`, `albumId`. L'URL doit rester un lien YouTube.
+- **Champs** (optionnels): `title`, `description`, `url`. L'URL doit rester un lien YouTube.
 - **Réponse 200**
 ```json
 {
@@ -83,14 +79,13 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
     "title": "Session studio",
     "description": "Clip officiel",
     "url": "https://youtu.be/dQw4w9WgXcQ",
-    "albumId": 2,
     "authorId": 3,
     "createdAt": "2024-04-02T12:00:00.000Z",
     "updatedAt": "2024-04-10T11:00:00.000Z"
   }
 }
 ```
-- **Erreurs fréquentes**: `400` pour un id ou une URL invalide, `404` si le média ou l'album n'existe pas, `401` si non authentifié.
+- **Erreurs fréquentes**: `400` pour un id ou une URL invalide, `404` si le média n'existe pas, `401` si non authentifié.
 
 ### DELETE `/media/delete/:id`
 - **Auth**: JWT admin requis

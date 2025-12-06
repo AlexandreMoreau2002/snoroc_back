@@ -14,7 +14,6 @@ module.exports = {
           description:
             "Un aperçu des répétitions filmées au studio avec un arrangement acoustique.",
           url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          albumId: null,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -24,7 +23,6 @@ module.exports = {
           description:
             "Clip vidéo officiel publié sur notre chaîne YouTube pour le single phare.",
           url: "https://youtu.be/3JZ_D3ELwOQ",
-          albumId: null,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -34,7 +32,6 @@ module.exports = {
           description:
             "Interview tournée en coulisses juste avant le concert de fin de tournée.",
           url: "https://www.youtube.com/watch?v=oHg5SJYRHA0",
-          albumId: null,
           authorId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -44,7 +41,6 @@ module.exports = {
           description:
             "Performance enregistrée en extérieur avec une captation multi-caméras.",
           url: "https://youtu.be/l482T0yNkeo",
-          albumId: null,
           authorId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -54,7 +50,6 @@ module.exports = {
           description:
             "Explications détaillées pour rejouer les riffs principaux du dernier single.",
           url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
-          albumId: null,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),

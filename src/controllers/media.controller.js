@@ -1,5 +1,4 @@
 const Media = require('../models/media.model')
-const Album = require('../models/albums.model')
 
 const isValidYouTubeUrl = (url) => {
   const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/).+/i
@@ -8,7 +7,7 @@ const isValidYouTubeUrl = (url) => {
 
 exports.Create = async (req, res) => {
   try {
-    const { title, description, url, albumId } = req.body
+    const { title, description, url } = req.body
 
     if (!title || !url) {
       return res.status(400).json({
@@ -31,28 +30,10 @@ exports.Create = async (req, res) => {
       })
     }
 
-    if (albumId && isNaN(albumId)) {
-      return res.status(400).json({
-        error: true,
-        message: "Requête invalide. L'ID d'album doit être un entier valide.",
-      })
-    }
-
-    if (albumId) {
-      const album = await Album.findOne({ where: { id: parseInt(albumId, 10) } })
-      if (!album) {
-        return res.status(404).json({
-          error: true,
-          message: "L'album spécifié est introuvable.",
-        })
-      }
-    }
-
     await Media.create({
       title,
       description: description || null,
       url,
-      albumId: albumId ? parseInt(albumId, 10) : null,
       authorId: req.user.userId,
     })
 
@@ -122,7 +103,7 @@ exports.GetById = async (req, res) => {
 exports.Update = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, description, url, albumId } = req.body
+    const { title, description, url } = req.body
 
     if (!req.user || !req.user.userId) {
       return res.status(401).json({
@@ -145,23 +126,6 @@ exports.Update = async (req, res) => {
       })
     }
 
-    if (albumId && isNaN(albumId)) {
-      return res.status(400).json({
-        error: true,
-        message: "Requête invalide. L'ID d'album doit être un entier valide.",
-      })
-    }
-
-    if (albumId) {
-      const album = await Album.findOne({ where: { id: parseInt(albumId, 10) } })
-      if (!album) {
-        return res.status(404).json({
-          error: true,
-          message: "L'album spécifié est introuvable.",
-        })
-      }
-    }
-
     const media = await Media.findOne({ where: { id: parseInt(id, 10) } })
 
     if (!media) {
@@ -175,7 +139,6 @@ exports.Update = async (req, res) => {
       title: title || media.title,
       description: description || media.description,
       url: url || media.url,
-      albumId: albumId ? parseInt(albumId, 10) : media.albumId,
       updatedAt: new Date(),
     })
 

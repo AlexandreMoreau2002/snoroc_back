@@ -4,12 +4,7 @@ jest.mock('../../../src/models/media.model', () => ({
   findOne: jest.fn(),
 }))
 
-jest.mock('../../../src/models/albums.model', () => ({
-  findOne: jest.fn(),
-}))
-
 const Media = require('../../../src/models/media.model')
-const Album = require('../../../src/models/albums.model')
 const {
   Create,
   GetAll,
@@ -75,40 +70,12 @@ describe('Media Controller', () => {
       })
     })
 
-    it("retourne 400 si l'albumId est invalide", async () => {
-      const res = createRes()
-
-      await Create(
-        { body: { title: 'Live', url: 'https://youtu.be/abc', albumId: 'abc' }, user: { userId: 1 } },
-        res
-      )
-
-      expect(res.status).toHaveBeenCalledWith(400)
-    })
-
-    it("retourne 404 si l'album n'existe pas", async () => {
-      const res = createRes()
-      Album.findOne.mockResolvedValue(null)
-
-      await Create(
-        { body: { title: 'Live', url: 'https://youtu.be/abc', albumId: 5 }, user: { userId: 1 } },
-        res
-      )
-
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith({
-        error: true,
-        message: "L'album spécifié est introuvable.",
-      })
-    })
-
     it('crée un média avec succès', async () => {
       const res = createRes()
-      Album.findOne.mockResolvedValue({ id: 2 })
       Media.create.mockResolvedValue({ id: 1 })
 
       await Create(
-        { body: { title: 'Live', url: 'https://youtu.be/abc', albumId: 2 }, user: { userId: 1 } },
+        { body: { title: 'Live', url: 'https://youtu.be/abc' }, user: { userId: 1 } },
         res
       )
 
@@ -116,7 +83,6 @@ describe('Media Controller', () => {
         title: 'Live',
         description: null,
         url: 'https://youtu.be/abc',
-        albumId: 2,
         authorId: 1,
       })
       expect(res.status).toHaveBeenCalledWith(201)
@@ -273,43 +239,14 @@ describe('Media Controller', () => {
       })
     })
 
-    it("retourne 400 si l'albumId fourni est invalide", async () => {
-      const res = createRes()
-
-      await Update(
-        { params: { id: '2' }, body: { albumId: 'abc' }, user: { userId: 1 } },
-        res
-      )
-
-      expect(res.status).toHaveBeenCalledWith(400)
-    })
-
-    it("retourne 404 si l'album fourni est introuvable", async () => {
-      const res = createRes()
-      Album.findOne.mockResolvedValue(null)
-
-      await Update(
-        { params: { id: '2' }, body: { albumId: 3 }, user: { userId: 1 } },
-        res
-      )
-
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith({
-        error: true,
-        message: "L'album spécifié est introuvable.",
-      })
-    })
-
     it('met à jour un média avec succès', async () => {
       const res = createRes()
-      Album.findOne.mockResolvedValue({ id: 3 })
       const update = jest.fn().mockResolvedValue({ id: 12, url: 'https://youtu.be/updated' })
       Media.findOne.mockResolvedValue({
         id: 12,
         title: 'Old',
         description: 'Desc',
         url: 'https://youtu.be/old',
-        albumId: 3,
         update,
       })
 
@@ -326,7 +263,6 @@ describe('Media Controller', () => {
         title: 'New title',
         description: 'Desc',
         url: 'https://youtu.be/updated',
-        albumId: 3,
         updatedAt: expect.any(Date),
       })
       expect(res.status).toHaveBeenCalledWith(200)

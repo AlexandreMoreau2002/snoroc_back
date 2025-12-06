@@ -14,8 +14,7 @@ Content-Type: application/json
 {
   "title": "Live session",
   "description": "Version acoustique",
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "albumId": 2
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 }
 
 ### Mettre à jour un média (JWT admin requis)
