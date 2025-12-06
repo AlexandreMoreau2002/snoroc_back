@@ -23,7 +23,7 @@ describe('Media Controller', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { })
   })
 
   afterEach(() => {
@@ -265,12 +265,40 @@ describe('Media Controller', () => {
         url: 'https://youtu.be/updated',
         updatedAt: expect.any(Date),
       })
-      expect(res.status).toHaveBeenCalledWith(200)
       expect(res.json).toHaveBeenCalledWith({
         error: false,
         message: 'Média mis à jour avec succès.',
         data: { id: 12, url: 'https://youtu.be/updated' },
       })
+    })
+
+    it('utilise les anciennes valeurs si non fournies dans le body', async () => {
+      const res = createRes()
+      const update = jest.fn().mockResolvedValue({ id: 12, title: 'Old', url: 'https://youtu.be/old' })
+      Media.findOne.mockResolvedValue({
+        id: 12,
+        title: 'Old',
+        description: 'Desc',
+        url: 'https://youtu.be/old',
+        update,
+      })
+
+      await Update(
+        {
+          params: { id: '12' },
+          body: {}, // Body vide
+          user: { userId: 9 },
+        },
+        res
+      )
+
+      expect(update).toHaveBeenCalledWith({
+        title: 'Old',
+        description: 'Desc',
+        url: 'https://youtu.be/old',
+        updatedAt: expect.any(Date),
+      })
+      expect(res.status).toHaveBeenCalledWith(200)
     })
 
     it('retourne 500 en cas derreur serveur pendant la mise à jour', async () => {
