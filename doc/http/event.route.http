@@ -1,0 +1,56 @@
+### Get All events
+GET {{baseUrl}}/event/getall
+Content-Type: application/json
+
+### Get event by Id
+GET {{baseUrl}}/event/id/1
+Content-Type: application/json
+
+### Création d'un évènement
+POST http://localhost:3030/event/create
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
+
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+titre evenement
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="content"
+
+Description de l'évènement.
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="address"
+
+12 rue des fleurs, 75000 Paris
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="event.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/event.jpg
+------WebKitFormBoundary123--
+
+### Modification d'un évènement
+PATCH http://localhost:3030/event/update/1
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
+
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+Titre mis à jour
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="address"
+
+Adresse mise à jour
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="new-event.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/new-event.jpg
+------WebKitFormBoundary123--
+
+### Suppression d'un évènement
+DELETE http://localhost:3030/event/delete/1
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
