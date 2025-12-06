@@ -1,7 +1,9 @@
 services:
   backend:
+    command: npm run dev
     volumes:
       - .:/app
+      - /app/node_modules
       - ./public/uploads:/app/public/uploads
     env_file:
-      - ./.env 
+      - ./.env
