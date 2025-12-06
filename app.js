@@ -18,7 +18,7 @@ app.use('/news', require('./src/routes/news.routes'))
 app.use('/event', require('./src/routes/event.routes'))
 app.use('/about', require('./src/routes/about.routes'))
 // app.use('/album', require(./src/routes/album.router))
-// app.use('/media', require('./src/routes/media.routes'))
+app.use('/media', require('./src/routes/media.routes'))
 app.use('/contact', require('./src/routes/contact.routes'))
 
 // Test API

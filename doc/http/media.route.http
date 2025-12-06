@@ -1,0 +1,32 @@
+### Récupérer tous les médias
+GET {{baseUrl}}/media/getall
+Content-Type: application/json
+
+### Récupérer un média par ID
+GET {{baseUrl}}/media/id/7
+Content-Type: application/json
+
+### Créer un média (JWT admin requis)
+POST http://localhost:3030/media/create
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "title": "Live session",
+  "description": "Version acoustique",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+}
+
+### Mettre à jour un média (JWT admin requis)
+PATCH http://localhost:3030/media/update/7
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "title": "Session studio",
+  "url": "https://youtu.be/dQw4w9WgXcQ"
+}
+
+### Supprimer un média (JWT admin requis)
+DELETE http://localhost:3030/media/delete/7
+Authorization: Bearer {{jwt}}

@@ -26,11 +26,7 @@ Media.init({
         type: DataTypes.STRING,
         allowNull: true
       },
-    
-      albumId: {
-        type: DataTypes.INTEGER,
-      },
-    
+
       authorId: {
         type: DataTypes.INTEGER,
       },

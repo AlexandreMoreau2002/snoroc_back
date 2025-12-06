@@ -1,20 +1,16 @@
 const express = require('express')
+const auth = require('../middlewares/authenticate.middlewares')
+const { roleMiddleware } = require('../middlewares/role.middlewares')
 const router = express.Router()
-const {Create, Update, GetAll, GetById, Delete } = require('../controllers/media.controller')
+const { Create, Update, GetAll, GetById, Delete } = require('../controllers/media.controller')
 
-// Création d'un média
-router.post('/create', Create);
+// Routes publiques
+router.get('/getall', GetAll)
+router.get('/id/:id', GetById)
 
-// Mise à jour d'un média par son ID
-router.patch('/update/:id', Update);
+// Routes protégées
+router.post('/create', auth, roleMiddleware('admin'), Create)
+router.patch('/update/:id', auth, roleMiddleware('admin'), Update)
+router.delete('/delete/:id', auth, roleMiddleware('admin'), Delete)
 
-// Récupération de tous les médias
-router.get('/', GetAll);
-
-// Récupération d'un média par son ID
-router.get('/:id', GetById);
-
-// Suppression d'un média par son ID
-router.delete('/delete/:id', Delete);
-
-module.exports = router;
+module.exports = router
