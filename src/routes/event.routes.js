@@ -1,20 +1,15 @@
-const express = require('express');
-const router = express.router();
-const {GetAll, Create, GetById, Update, Delete} = require('../controllers/event.controller');
+const express = require('express')
+const auth = require('../middlewares/authenticate.middlewares')
+const { roleMiddleware } = require('../middlewares/role.middlewares')
+const upload = require('../middlewares/upload.middleware')
+const { GetAll, Create, GetById, Update, Delete } = require('../controllers/event.controller')
 
-// Récupération de tous les évènements
-router.get('/', GetAll);
+const router = express.Router()
 
-// Création d'un évènement
-router.post('/post', Create);
+router.get('/getall', GetAll)
+router.get('/id/:id', GetById)
+router.post('/create', auth, roleMiddleware('admin'), upload.single('thumbnail'), Create)
+router.patch('/update/:id', auth, roleMiddleware('admin'), upload.single('thumbnail'), Update)
+router.delete('/delete/:id', auth, roleMiddleware('admin'), Delete)
 
-// Récupération d'un évènement par son ID
-router.get('/get/:id', GetById);
-
-// Mise à jour d'un évènement
-router.patch('/update/:id', Update);
-
-// Suppression d'un évènement
-router.delete('/delete/:id', Delete);
-
-module.exports = router;
+module.exports = router
