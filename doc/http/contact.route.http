@@ -1,0 +1,35 @@
+### Créer un message de contact (public)
+POST {{baseUrl}}/contact
+Content-Type: application/json
+
+{
+  "name": "Kevin Test",
+  "email": "kevin@example.com",
+  "phone": "+33 6 12 34 56 78",
+  "subject": "J'adore la musique",
+  "message": "Petit message car j'aime votre musique."
+}
+
+### Lister les messages (admin)
+GET {{baseUrl}}/contact
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+### Lire un message par id (admin)
+GET {{baseUrl}}/contact/12
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+### Marquer un message comme lu/non lu (admin)
+PUT {{baseUrl}}/contact/12
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "hasBeenRead": true
+}
+
+### Supprimer un message (admin)
+DELETE {{baseUrl}}/contact/12
+Authorization: Bearer {{jwt}}
+Content-Type: application/json

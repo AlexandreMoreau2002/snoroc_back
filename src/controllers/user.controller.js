@@ -1,11 +1,11 @@
-require('dotenv').config()
-const { sendEmail } = require('../../config/nodemailer.config')
+require('../../config/loadEnv')
 const {
   emailDataVerification,
 } = require('../services/email/verifyEmail.service')
 const {
   emailDataforgotPassword,
 } = require('../services/email/forgotPasswordEmail.service')
+const emailDispatcher = require('../services/email/emailDispatcher')
 
 const { phone } = require('phone')
 const User = require('../models/user.model')
@@ -77,12 +77,7 @@ exports.SignUp = async (req, res) => {
     const VerificationCode = generateVerificationCode()
 
     const emailData = emailDataVerification(email, VerificationCode)
-    const emailResult = await sendEmail(emailData)
-    if (!emailResult.success) {
-      return res
-        .status(500)
-        .json({ value: false, message: emailResult.message })
-    }
+    emailDispatcher.enqueueEmail(emailData)
 
     // Donnée a envoyer a la db
     const userData = {
@@ -511,14 +506,7 @@ exports.ForgotPassword = async (req, res) => {
 
     // Envoyer un email avec le token
     const emailData = emailDataforgotPassword(email, resetToken)
-    const emailResult = await sendEmail(emailData)
-
-    if (!emailResult.success) {
-      return res.status(500).json({
-        status: false,
-        message: "Échec de l'envoi de l'email.",
-      })
-    }
+    emailDispatcher.enqueueEmail(emailData)
 
     return res.status(200).json({
       status: true,

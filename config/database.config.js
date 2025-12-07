@@ -1,28 +1,26 @@
 const { Sequelize } = require("sequelize");
-const NODE_ENV = process.env.NODE_ENV || "dev";
-const allConfigs = require("./config.json");
+const ENV = process.env.ENV || "dev";
+const allConfigs = require("./config");
 
 // Build Sequelize instance depending on environment
 function createSequelize() {
-  // 1) If a DATABASE_URL (or MYSQL_URL) is provided, prefer it (useful on Railway)
-  const connectionUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  // 1) If a DATABASE_URL is provided, prefer it (useful for managed services)
+  const connectionUrl = process.env.DATABASE_URL;
   if (connectionUrl) {
-    console.log(`[DB] Using connection URL from env (${NODE_ENV}).`);
     return new Sequelize(connectionUrl, {
       dialect: "mysql",
       logging: false,
     });
   }
 
-  // 2) Otherwise, if discrete env vars are present, use them (Railway exposes MYSQLHOST, MYSQLUSER, etc.)
-  const host = process.env.MYSQLHOST || process.env.DB_HOST;
-  const username = process.env.MYSQLUSER || process.env.DB_USER;
-  const password = process.env.MYSQLPASSWORD || process.env.DB_PASSWORD;
-  const database = process.env.MYSQLDATABASE || process.env.DB_NAME;
-  const port = Number(process.env.MYSQLPORT || process.env.DB_PORT || 3306);
+  // 2) Otherwise, if discrete env vars are present, use them
+  const host = process.env.DB_HOST;
+  const username = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const database = process.env.DB_NAME;
+  const port = Number(process.env.DB_PORT || 3306);
 
   if (host && username && database) {
-    console.log(`[DB] Using discrete env vars (${NODE_ENV}) host=${host} db=${database} port=${port}`);
     return new Sequelize({
       host,
       username,
@@ -34,9 +32,8 @@ function createSequelize() {
     });
   }
 
-  // 3) Fallback: use local config file for development/testing
-  const cfg = allConfigs[NODE_ENV] || allConfigs.dev;
-  console.log(`[DB] Using config.json profile: ${NODE_ENV} host=${cfg.host} db=${cfg.database} port=${cfg.port || 3306}`);
+  // 3) Fallback: use config helper for development/testing defaults
+  const cfg = allConfigs[ENV] || allConfigs.dev;
   return new Sequelize({
     host: cfg.host,
     username: cfg.username,

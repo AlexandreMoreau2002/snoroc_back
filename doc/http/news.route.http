@@ -1,0 +1,61 @@
+### Test News
+GET {{baseUrl}}/news/
+Content-Type: application/json
+
+### Test avec une vrai requete
+GET {{baseUrl}}/news/alors
+Content-Type: application/json
+
+### Get All news
+GET {{baseUrl}}/news/getall
+Content-Type: application/json
+
+### Get news by Id
+GET {{baseUrl}}/news/id/35
+Content-Type: application/json
+
+
+### Création d'une actualité
+POST http://localhost:3030/news/create
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
+
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+Nouvelle actualité
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="content"
+
+Ceci est le contenu de la nouvelle actualité.
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="test.jpeg"
+Content-Type: image/jpeg
+
+< /Users/alex/Downloads/test.jpeg
+------WebKitFormBoundary123--
+
+
+### Modification d'une news
+PATCH http://localhost:3030/news/update/6
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
+
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+actualité 2
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="content"
+
+contenu de l'actualité 2.
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="nouvelle-image.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/nouvelle-image.jpg
+------WebKitFormBoundary123--
+
+### Delete news
+DELETE http://localhost:3030/news/delete/34
+Authorization: Bearer {{jwt}}

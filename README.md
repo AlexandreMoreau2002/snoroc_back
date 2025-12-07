@@ -16,57 +16,109 @@ Snoroc est une plateforme conçue pour présenter le groupe Snoroc, leurs albums
 ## Lancer le projet
 
 ### Prérequis
+
 - **Docker** et **Docker Compose** doivent être installés sur votre machine.
 - Assurez-vous que vous êtes positionné dans le répertoire racine du projet (`snoroc_back`).
+- Copiez les fichiers d’exemple de configuration avant de démarrer :
+  - `cp .env.example .env`
+  - `cp docker-compose.override.example.yml docker-compose.override.yml` si vous voulez activer les volumes de dev (code et uploads en live). Sinon, supprimez/ignorez l’override pour rester proche de la prod.
 
 ### Commandes disponibles (via Makefile)
 
 #### Démarrer le projet
+
 ```bash
 make start
 ```
 
 Démarre les conteneurs en arrière-plan.
 
-Arrêter le projet
+Arrêter le projet (sans toucher aux volumes)
+
 ```bash
 make stop
 ```
+
 Arrête les conteneurs Docker sans supprimer les volumes.
 
-Réinitialiser le projet
+Redémarrer proprement (stop puis start)
+
 ```bash
-make reset
+make restart
 ```
-Arrête les conteneurs, supprime les volumes associés (incluant la base de données), puis reconstruit et redémarre les conteneurs.
+
+Reconstruire les images sans supprimer le volume MySQL
+
+```bash
+make rebuild
+```
+
+Mettre à jour les images depuis le registry
+
+```bash
+make pull
+```
+
+Sauvegarde manuelle immédiate de la base (dump SQL daté dans `backups/`)
+
+```bash
+make backup
+```
 
 Accéder au conteneur backend
+
 ```bash
 make code
 ```
+
 Ouvre un bash dans le conteneur backend.
 
 Accès aux services
-	•	API Backend : http://localhost:3030
-	•	phpMyAdmin : http://localhost:8080
+• API Backend : http://localhost:3030
+• phpMyAdmin : http://localhost:8080
 
 Notes importantes
-	•	Lors de l’exécution de make reset, toutes les données de la base MySQL seront supprimées.
-	•	Utilisez make code pour interagir directement avec le conteneur backend (ex. exécuter des commandes Sequelize ou déboguer).
+• Ne pas utiliser de commandes destructives (`docker compose down --volumes`) pour préserver la base.
+• Utilisez `make backup` avant toute opération risquée et conservez les dumps.
+• Utilisez make code pour interagir directement avec le conteneur backend (ex. exécuter des commandes Sequelize ou déboguer).
+• Le worker d'envoi d'emails tourne dans le même process que l'API : aucune commande supplémentaire n'est nécessaire, il est initialisé automatiquement au démarrage du serveur et traite la file dès qu'un job est ajouté.
 
 ### Commandes sequelize importante
 
 Effectuer les migrations
+
 ```bash
 npx sequelize-cli db:migrate
 ```
 
 Annuler les migrations
+
 ```bash
 npx sequelize-cli db:migrate:undo:all
 ```
 
-Seed des utilisateurs pour dev
+### Commandes de seeding
+
+Exécuter tous les seeders
+
 ```bash
 npx sequelize-cli db:seed:all
+```
+
+Exécuter un seeder spécifique
+
+```bash
+npx sequelize-cli db:seed --seed 001-seed-users.js
+```
+
+Annuler tous les seeders
+
+```bash
+npx sequelize-cli db:seed:undo:all
+```
+
+Annuler un seeder spécifique
+
+```bash
+npx sequelize-cli db:seed:undo --seed 001-seed-users.js
 ```

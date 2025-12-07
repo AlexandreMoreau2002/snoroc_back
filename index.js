@@ -1,50 +1,28 @@
 // back/index.js
-const NODE_ENV = process.env.NODE_ENV || 'dev'
-if (NODE_ENV !== 'production') {
-  // Load local env vars in development
-  require('dotenv').config()
-}
-
-const port = process.env.PORT || 3030
-const express = require('express')
-const app = express()
-const path = require('path')
-const cors = require('cors')
-const bodyParser = require('body-parser')
+require('./config/loadEnv')
+const app = require('./app')
+const { version } = require('./package.json')
 const sequelize = require('./config/database.config')
+// const initDatabase = require('./config/init-database')
+require('./src/services/email/emailDispatcher')
 
-app.use(cors())
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const ENV = process.env.ENV || 'dev'
+const port = process.env.PORT || 3030
 
-// user route
-app.use('/user', require('./src/routes/user.routes'))
-
-// // news route
-app.use('/news', require('./src/routes/news.routes'))
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
-
-// // event route
-// app.use('/event', require('./src/routes/event.routes'));
-
-// album route
-// // app.use('/album', require(./src/routes/album.router));
-
-// // media route
-// app.use('/media', require('./src/routes/media.routes'));
-
-// // Contact routes
-app.use('/contact', require('./src/routes/contact.routes'));
-
-// test de l'api
-app.get('/', (req, res) => res.send('Hello World'))
-
-app.listen(port, async () => {
+async function start() {
   try {
-    await sequelize.authenticate()
-    console.log(`[${NODE_ENV}] Connexion DB établie avec succès.`)
-    console.log(`Server listening on port ${port}`)
+    await Promise.all([sequelize.authenticate()])
+    console.log(
+      `Connexion a la base de donnée établie avec succès, Server v${version}, mode : ${ENV}`
+    )
   } catch (error) {
     console.error('impossible de se connecter a la bdd:', error)
+    process.exit(1)
   }
-})
+
+  app.listen(port, () => {
+    console.log(`Server ready on port ${port}`)
+  })
+}
+
+start()

@@ -1,51 +1,62 @@
+name: ${INSTANCE:-snoroc_default}
 services:
   database:
     image: mysql:8.0
-    container_name: snoroc_mysql
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: snoroc
-      MYSQL_USER: snoroc
-      MYSQL_PASSWORD: 1234
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '--silent']
       interval: 5s
       retries: 5
       timeout: 5s
+    networks:
+      - snoroc_net
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3030:3030"
+      - '3030:3030'
+    env_file:
+      - .env
     environment:
-      NODE_ENV: development
-      DB_HOST: database
-      DB_USER: snoroc
-      DB_PASSWORD: 1234
-      DB_NAME: snoroc
+      ENV: ${ENV:-production}
+      DB_HOST: ${DB_HOST:-database}
+      DB_USER: ${DB_USER:-snoroc}
+      DB_PASSWORD: ${DB_PASSWORD:-1234}
+      DB_NAME: ${DB_NAME:-snoroc}
+      BASE_URL: ${BASE_URL:-http://localhost:3030}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    volumes:
+      - ${UPLOADS_DIR}:/app/public/uploads
     depends_on:
       database:
         condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
     restart: always
+    networks:
+      - snoroc_net
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     restart: always
     ports:
-      - "8080:80"
+      - '8080:80'
     environment:
       PMA_HOST: database
-      PMA_USER: root
-      PMA_PASSWORD: root
+    depends_on:
+      - database
+    networks:
+      - snoroc_net
 
 volumes:
   db_data:
+
+networks:
+  snoroc_net:

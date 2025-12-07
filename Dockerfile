@@ -18,4 +18,4 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 EXPOSE 3030
 
-CMD ["npm", "start"]
+CMD ["node", "index.js"]

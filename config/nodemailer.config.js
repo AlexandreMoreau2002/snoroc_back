@@ -1,4 +1,3 @@
-// config/nodemailer.config.js
 const nodemailer = require('nodemailer')
 
 /**
@@ -14,16 +13,39 @@ const nodemailer = require('nodemailer')
  */
 
 async function sendEmail({ from, to, subject, text, html }) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  })
+  let transporter
+
+  // En production (ou si SMTP_HOST est défini), on utilise le SMTP OVH
+  if (process.env.SMTP_HOST) {
+    console.log('[Mailer] Using OVH SMTP configuration:', {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE,
+      user: process.env.EMAIL_USER,
+    })
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour 587
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    })
+  } else {
+    console.log('[Mailer] Using Gmail configuration (Fallback)')
+    // Fallback pour le développement local (Gmail)
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    })
+  }
 
   const mailOptions = {
-    from,
+    from: from || process.env.EMAIL_USER || process.env.EMAIL, // Fallback sur l'email configuré en local
     to,
     subject,
     text,
@@ -31,11 +53,12 @@ async function sendEmail({ from, to, subject, text, html }) {
   }
 
   try {
+    console.log(`[Mailer] Attempting to send email to: ${to}`)
     const info = await transporter.sendMail(mailOptions)
-    console.log('Email sent: ' + info.response)
+    console.log('[Mailer] Email sent successfully:', info.response)
     return { success: true, message: 'Email sent', info: info }
   } catch (error) {
-    console.error('Error sending email: ', error)
+    console.error('[Mailer] Error sending email:', error)
     return { success: false, message: 'Failed to send email', error: error }
   }
 }
