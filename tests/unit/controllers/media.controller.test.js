@@ -4,7 +4,13 @@ jest.mock('../../../src/models/media.model', () => ({
   findOne: jest.fn(),
 }))
 
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+  unlinkSync: jest.fn(),
+}))
+
 const Media = require('../../../src/models/media.model')
+const fs = require('fs')
 const {
   Create,
   GetAll,
@@ -34,19 +40,25 @@ describe('Media Controller', () => {
     it('retourne 400 si des champs sont manquants', async () => {
       const res = createRes()
 
-      await Create({ body: { title: '', url: '' }, user: {} }, res)
+      await Create({ body: { title: '', url: '' }, user: {}, file: null }, res)
 
       expect(res.status).toHaveBeenCalledWith(400)
       expect(res.json).toHaveBeenCalledWith({
         error: true,
-        message: 'Titre et URL YouTube sont obligatoires.',
+        message: 'Titre, URL YouTube et image sont obligatoires.',
       })
     })
 
     it('retourne 401 si utilisateur non authentifié', async () => {
       const res = createRes()
 
-      await Create({ body: { title: 'Live', url: 'https://youtu.be/abc' }, user: {} }, res)
+      await Create({
+        body: { title: 'Live', url: 'https://youtu.be/abc' },
+        user: {},
+        file: { filename: 'thumb.png' },
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3030'),
+      }, res)
 
       expect(res.status).toHaveBeenCalledWith(401)
       expect(res.json).toHaveBeenCalledWith({
@@ -59,7 +71,13 @@ describe('Media Controller', () => {
       const res = createRes()
 
       await Create(
-        { body: { title: 'Live', url: 'https://vimeo.com/1' }, user: { userId: 1 } },
+        {
+          body: { title: 'Live', url: 'https://vimeo.com/1' },
+          user: { userId: 1 },
+          file: { filename: 'thumb.png' },
+          protocol: 'http',
+          get: jest.fn().mockReturnValue('localhost:3030'),
+        },
         res
       )
 
@@ -75,7 +93,13 @@ describe('Media Controller', () => {
       Media.create.mockResolvedValue({ id: 1 })
 
       await Create(
-        { body: { title: 'Live', url: 'https://youtu.be/abc' }, user: { userId: 1 } },
+        {
+          body: { title: 'Live', url: 'https://youtu.be/abc' },
+          user: { userId: 1 },
+          file: { filename: 'thumb.png' },
+          protocol: 'http',
+          get: jest.fn().mockReturnValue('localhost:3030'),
+        },
         res
       )
 
@@ -83,6 +107,7 @@ describe('Media Controller', () => {
         title: 'Live',
         description: null,
         url: 'https://youtu.be/abc',
+        thumbnail: 'http://localhost:3030/uploads/thumb.png',
         authorId: 1,
       })
       expect(res.status).toHaveBeenCalledWith(201)
@@ -97,7 +122,13 @@ describe('Media Controller', () => {
       Media.create.mockRejectedValue(new Error('db'))
 
       await Create(
-        { body: { title: 'Live', url: 'https://youtu.be/abc' }, user: { userId: 1 } },
+        {
+          body: { title: 'Live', url: 'https://youtu.be/abc' },
+          user: { userId: 1 },
+          file: { filename: 'thumb.png' },
+          protocol: 'http',
+          get: jest.fn().mockReturnValue('localhost:3030'),
+        },
         res
       )
 
@@ -247,6 +278,7 @@ describe('Media Controller', () => {
         title: 'Old',
         description: 'Desc',
         url: 'https://youtu.be/old',
+        thumbnail: 'http://localhost:3030/uploads/old.png',
         update,
       })
 
@@ -263,6 +295,7 @@ describe('Media Controller', () => {
         title: 'New title',
         description: 'Desc',
         url: 'https://youtu.be/updated',
+        thumbnail: 'http://localhost:3030/uploads/old.png',
         updatedAt: expect.any(Date),
       })
       expect(res.json).toHaveBeenCalledWith({
@@ -280,6 +313,7 @@ describe('Media Controller', () => {
         title: 'Old',
         description: 'Desc',
         url: 'https://youtu.be/old',
+        thumbnail: 'http://localhost:3030/uploads/old.png',
         update,
       })
 
@@ -296,6 +330,7 @@ describe('Media Controller', () => {
         title: 'Old',
         description: 'Desc',
         url: 'https://youtu.be/old',
+        thumbnail: 'http://localhost:3030/uploads/old.png',
         updatedAt: expect.any(Date),
       })
       expect(res.status).toHaveBeenCalledWith(200)
@@ -340,11 +375,18 @@ describe('Media Controller', () => {
     it('supprime un média avec succès', async () => {
       const res = createRes()
       const destroy = jest.fn().mockResolvedValue()
-      Media.findOne.mockResolvedValue({ id: 4, destroy })
+      fs.existsSync.mockReturnValue(true)
+      Media.findOne.mockResolvedValue({
+        id: 4,
+        destroy,
+        thumbnail: 'http://localhost:3030/uploads/old.png',
+      })
 
       await Delete({ params: { id: '4' } }, res)
 
       expect(destroy).toHaveBeenCalled()
+      expect(fs.existsSync).toHaveBeenCalled()
+      expect(fs.unlinkSync).toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(200)
       expect(res.json).toHaveBeenCalledWith({
         error: false,

@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const Media = require('../models/media.model')
 
 const isValidYouTubeUrl = (url) => {
@@ -9,10 +11,10 @@ exports.Create = async (req, res) => {
   try {
     const { title, description, url } = req.body
 
-    if (!title || !url) {
+    if (!title || !url || !req.file) {
       return res.status(400).json({
         error: true,
-        message: 'Titre et URL YouTube sont obligatoires.',
+        message: 'Titre, URL YouTube et image sont obligatoires.',
       })
     }
 
@@ -30,10 +32,15 @@ exports.Create = async (req, res) => {
       })
     }
 
+    const thumbnail = `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(
+      req.file.filename
+    )}`
+
     await Media.create({
       title,
       description: description || null,
       url,
+      thumbnail,
       authorId: req.user.userId,
     })
 
@@ -135,10 +142,33 @@ exports.Update = async (req, res) => {
       })
     }
 
+    let newThumbnail = media.thumbnail
+
+    if (req.file) {
+      const oldThumbnailPath = path.join(
+        __dirname,
+        '../../public/uploads',
+        path.basename(media.thumbnail)
+      )
+
+      if (fs.existsSync(oldThumbnailPath)) {
+        try {
+          fs.unlinkSync(oldThumbnailPath)
+        } catch (err) {
+          console.error("Erreur lors de la suppression de l'ancienne image :", err)
+        }
+      }
+
+      newThumbnail = `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(
+        req.file.filename
+      )}`
+    }
+
     const updatedMedia = await media.update({
       title: title || media.title,
       description: description || media.description,
       url: url || media.url,
+      thumbnail: newThumbnail,
       updatedAt: new Date(),
     })
 
@@ -174,6 +204,22 @@ exports.Delete = async (req, res) => {
         error: true,
         message: 'Média introuvable.',
       })
+    }
+
+    if (media.thumbnail) {
+      const thumbnailPath = path.join(
+        __dirname,
+        '../../public/uploads',
+        path.basename(media.thumbnail)
+      )
+
+      if (fs.existsSync(thumbnailPath)) {
+        try {
+          fs.unlinkSync(thumbnailPath)
+        } catch (error) {
+          console.error("Erreur lors de la suppression de l'image :", error)
+        }
+      }
     }
 
     await media.destroy()

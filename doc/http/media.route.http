@@ -9,23 +9,46 @@ Content-Type: application/json
 ### Créer un média (JWT admin requis)
 POST http://localhost:3030/media/create
 Authorization: Bearer {{jwt}}
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
 
-{
-  "title": "Live session",
-  "description": "Version acoustique",
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-}
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+Live session
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="description"
+
+Version acoustique
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="url"
+
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="media.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/media.jpg
+------WebKitFormBoundary123--
 
 ### Mettre à jour un média (JWT admin requis)
 PATCH http://localhost:3030/media/update/7
 Authorization: Bearer {{jwt}}
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123
 
-{
-  "title": "Session studio",
-  "url": "https://youtu.be/dQw4w9WgXcQ"
-}
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="title"
+
+Session studio
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="url"
+
+https://youtu.be/dQw4w9WgXcQ
+------WebKitFormBoundary123
+Content-Disposition: form-data; name="thumbnail"; filename="updated-media.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/updated-media.jpg
+------WebKitFormBoundary123--
 
 ### Supprimer un média (JWT admin requis)
 DELETE http://localhost:3030/media/delete/7

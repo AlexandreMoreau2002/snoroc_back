@@ -21,7 +21,12 @@ Media.init({
         type: DataTypes.TEXT('long'),
         allowNull: true
       },
-    
+
+      thumbnail: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+
       url: {
         type: DataTypes.STRING,
         allowNull: true

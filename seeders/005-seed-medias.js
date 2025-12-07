@@ -8,12 +8,22 @@ require("dotenv").config({
 module.exports = {
   async up(queryInterface, Sequelize) {
     try {
+      const ENV = process.env.ENV || 'dev'
+      let BASE_URL
+
+      if (ENV === 'production') {
+        BASE_URL = process.env.BASE_URL
+      } else {
+        BASE_URL = `http://localhost:${process.env.PORT || 3030}`
+      }
+
       await queryInterface.bulkInsert("medias", [
         {
           title: "Session live au studio",
           description:
             "Un aperçu des répétitions filmées au studio avec un arrangement acoustique.",
           url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          thumbnail: `${BASE_URL}/uploads/seed/seed1.jpg`,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -23,6 +33,7 @@ module.exports = {
           description:
             "Clip vidéo officiel publié sur notre chaîne YouTube pour le single phare.",
           url: "https://youtu.be/3JZ_D3ELwOQ",
+          thumbnail: `${BASE_URL}/uploads/seed/seed2.jpg`,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -32,6 +43,7 @@ module.exports = {
           description:
             "Interview tournée en coulisses juste avant le concert de fin de tournée.",
           url: "https://www.youtube.com/watch?v=oHg5SJYRHA0",
+          thumbnail: `${BASE_URL}/uploads/seed/seed3.jpg`,
           authorId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -41,6 +53,7 @@ module.exports = {
           description:
             "Performance enregistrée en extérieur avec une captation multi-caméras.",
           url: "https://youtu.be/l482T0yNkeo",
+          thumbnail: `${BASE_URL}/uploads/seed/seed4.jpg`,
           authorId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -50,6 +63,7 @@ module.exports = {
           description:
             "Explications détaillées pour rejouer les riffs principaux du dernier single.",
           url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+          thumbnail: `${BASE_URL}/uploads/seed/seed5.jpg`,
           authorId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),

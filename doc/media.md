@@ -10,6 +10,7 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
 | `id`        | integer  | oui         | Identifiant unique. |
 | `title`     | string   | oui         | Titre du média. |
 | `description` | text   | non         | Description longue du média. |
+| `thumbnail` | string (URL) | oui | URL publique de la vignette (uploadée via le back). |
 | `url`       | string (URL YouTube) | oui | Lien YouTube intégré par le front. |
 | `authorId`  | integer  | oui (création) | Identifiant de l'admin ayant créé le média. |
 | `createdAt` | date     | oui         | Date de création. |
@@ -29,6 +30,7 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
       "id": 7,
       "title": "Live session",
       "description": "Version acoustique.",
+      "thumbnail": "http://localhost:3030/uploads/seed/seed1.jpg",
       "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       "authorId": 3,
       "createdAt": "2024-04-02T12:00:00.000Z",
@@ -48,10 +50,11 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
 
 ### POST `/media/create`
 - **Auth**: JWT admin requis
-- **Content-Type**: `application/json`
+  - **Content-Type**: `multipart/form-data`
 - **Champs**:
   - `title` *(string, requis)*
   - `url` *(string, requis, lien YouTube)*
+  - `thumbnail` *(file, requis, clé `thumbnail`)*
   - `description` *(string, optionnel)*
 - **Réponse 201**
 ```json
@@ -67,8 +70,8 @@ La ressource média est exposée sous le préfixe `/media`. Les routes d'écritu
 ### PATCH `/media/update/:id`
 - **Auth**: JWT admin requis
 - **Paramètres**: `id` (integer, requis)
-- **Content-Type**: `application/json`
-- **Champs** (optionnels): `title`, `description`, `url`. L'URL doit rester un lien YouTube.
+- **Content-Type**: `multipart/form-data`
+- **Champs** (optionnels): `title`, `description`, `url`, `thumbnail` (fichier). L'URL doit rester un lien YouTube.
 - **Réponse 200**
 ```json
 {
