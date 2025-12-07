@@ -1,12 +1,13 @@
 // back/app.js
-const express = require('express')
 const path = require('path')
 const cors = require('cors')
+const express = require('express')
 const bodyParser = require('body-parser')
 const { version } = require('./package.json')
 const errorHandler = require('./src/middlewares/errorHandler')
 
 const app = express()
+app.set('trust proxy', true)
 
 app.use(cors())
 app.use(bodyParser.json())
