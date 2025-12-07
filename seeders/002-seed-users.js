@@ -8,13 +8,6 @@ module.exports = {
     try {
       const hashedPassword = await encryptPassword(process.env.PASSWORD)
 
-      const tokenAdmin = await generateJwt({
-        id: 1,
-        firstname: 'Admin',
-        email: 'pricedelu@gmail.com',
-        isAdmin: true,
-      })
-
       const tokenUser = await generateJwt({
         id: 2,
         firstname: 'User',
@@ -23,22 +16,6 @@ module.exports = {
       })
 
       await queryInterface.bulkInsert('users', [
-        {
-          firstname: 'Admin',
-          lastname: 'User',
-          email: 'pricedelu@gmail.com',
-          password: hashedPassword,
-          userPhone: '0769666370',
-          civility: 'Mr',
-          newsletter: false,
-          isVerified: true,
-          isAdmin: true,
-          isActive: true,
-          isRestricted: false,
-          accessToken: tokenAdmin,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
         {
           firstname: 'Regular',
           lastname: 'User',
@@ -66,7 +43,6 @@ module.exports = {
     await queryInterface.bulkDelete('users', {
       email: {
         [Sequelize.Op.in]: [
-          'pricedelu@gmail.com',
           'moreaualexandre2002@gmail.com',
         ],
       },

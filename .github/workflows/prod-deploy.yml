@@ -1,15 +1,15 @@
-name: Build, Test and Deploy to Develop
+name: Build, Test and Deploy to Production
 
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   build:
     name: Build backend
     runs-on: ubuntu-latest
-    environment: snoroc-back-develop
+    environment: snoroc-back
 
     steps:
       - name: Checkout repository
@@ -64,7 +64,7 @@ jobs:
     needs:
       - build
       - test
-    environment: snoroc-back-develop
+    environment: snoroc-back
 
     steps:
       - name: Download artifact
@@ -96,9 +96,9 @@ jobs:
           key: ${{ vars.SSH_KEY }}
           script: |
             set -euxo pipefail
-            echo "🚀 Starting deployment on VPS..."
+            echo "🚀 Starting production deployment on VPS..."
 
-            REMOTE_ROOT="/srv/snoroc-dev"
+            REMOTE_ROOT="/srv/snoroc"
             PROJECT_DIR="${REMOTE_ROOT}/snoroc_back"
 
             mkdir -p "$PROJECT_DIR"
@@ -120,10 +120,10 @@ jobs:
             cd "$PROJECT_DIR"
             sudo docker compose up -d --build backend phpmyadmin
 
-            echo "✅ Backend deployed and restarted successfully"
+            echo "✅ Production backend deployed and restarted successfully"
 
       - name: Verify API response
         run: |
           echo "🌐 Checking API response..."
           sleep 5
-          curl -s http://${{ vars.SSH_HOST }}:3030 || echo "⚠️ API check failed"
+          curl -s http://${{ vars.SSH_HOST }}:3031 || echo "⚠️ API check failed"
