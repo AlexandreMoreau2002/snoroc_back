@@ -28,6 +28,9 @@ exports.Create = async (req, res) => {
       'host'
     )}/uploads/${encodeURIComponent(req.file.filename)}`
 
+    console.log(`thumbnailURL protocol used : ${req.protocol}`)
+    console.log("thumbnailURL protocol verification : ",thumbnailUrl)
+
     const news = await News.create({
       authorId,
       title,
