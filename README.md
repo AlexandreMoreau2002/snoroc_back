@@ -75,7 +75,7 @@ Ouvre un bash dans le conteneur backend.
 
 Accès aux services
 • API Backend : http://localhost:3030
-• phpMyAdmin : http://localhost:8080
+• phpMyAdmin : http://localhost:8081
 
 Notes importantes
 • Ne pas utiliser de commandes destructives (`docker compose down --volumes`) pour préserver la base.

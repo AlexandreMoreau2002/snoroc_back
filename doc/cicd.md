@@ -41,6 +41,16 @@ Toutes les configurations sont stockées dans les **Variables** (et non les Secr
 | `DB_PASSWORD` | Mot de passe de la base de données MySQL |
 | `JWT_SECRET` | Clé secrète pour la génération des tokens JWT |
 
+#### Configuration spécifique phpMyAdmin
+
+Ajoutez la variable `PMA_PORT` dans chaque environnement GitHub :
+
+| Environnement | Variable | Valeur |
+| :--- | :--- | :--- |
+| Local (fichier `.env`) | `PMA_PORT` | `8081` |
+| `snoroc-back-develop` (VPS dev) | `PMA_PORT` | `8080` |
+| `snoroc-back` (Production) | `PMA_PORT` | `18080` |
+
 #### Configuration Email (Production / OVH)
 Ces variables sont injectées dans le conteneur backend pour permettre l'envoi d'emails via le SMTP d'OVH.
 
